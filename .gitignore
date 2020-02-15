@@ -17,5 +17,9 @@ hs_err_pid*
 # Ignore settings.xml
 settings.xml
 target
-.idea/
 *.iml
+
+# intellij idea
+.idea/
+!.idea/dictionaries/*.xml
+
