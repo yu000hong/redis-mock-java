@@ -1,5 +1,11 @@
 package org.rarefiedredis.redis;
 
+import org.rarefiedredis.redis.cache.IRedisCache;
+import org.rarefiedredis.redis.cache.RedisHashCache;
+import org.rarefiedredis.redis.cache.RedisListCache;
+import org.rarefiedredis.redis.cache.RedisSetCache;
+import org.rarefiedredis.redis.cache.RedisSortedSetCache;
+import org.rarefiedredis.redis.cache.RedisStringCache;
 import org.rarefiedredis.redis.exception.ArgException;
 import org.rarefiedredis.redis.exception.BitArgException;
 import org.rarefiedredis.redis.exception.DiscardWithoutMultiException;
@@ -957,16 +963,16 @@ public final class RedisMock extends AbstractRedisMock {
     //region IRedisSet implementations
 
     @Override
-    public synchronized Long sadd(final String key, final String member, final String... members) throws WrongTypeException {
+    public synchronized Long sadd(final String key, final String member, final String... members) {
         checkType(key, "set");
         Long count = 0L;
         if (!setCache.exists(key) || !setCache.get(key).contains(member)) {
             setCache.set(key, member);
             count += 1L;
         }
-        for (String memb : members) {
-            if (!setCache.exists(key) || !setCache.get(key).contains(memb)) {
-                setCache.set(key, memb);
+        for (String m : members) {
+            if (!setCache.get(key).contains(m)) {
+                setCache.set(key, m);
                 count += 1L;
             }
         }
@@ -977,7 +983,7 @@ public final class RedisMock extends AbstractRedisMock {
     }
 
     @Override
-    public synchronized Long scard(String key) throws WrongTypeException {
+    public synchronized Long scard(String key) {
         checkType(key, "set");
         if (!setCache.exists(key)) {
             return 0L;
@@ -986,7 +992,7 @@ public final class RedisMock extends AbstractRedisMock {
     }
 
     @Override
-    public synchronized Set<String> sdiff(String key, String... keys) throws WrongTypeException {
+    public synchronized Set<String> sdiff(String key, String... keys) {
         checkType(key, "set");
         for (String k : keys) {
             checkType(k, "set");
@@ -1067,34 +1073,26 @@ public final class RedisMock extends AbstractRedisMock {
     }
 
     @Override
-    public synchronized String spop(String key) {
-        String member = srandmember(key);
-        if (member != null) {
-            srem(key, member);
-        }
-        return member;
-    }
-
-    @Override
-    public synchronized String srandmember(String key) {
-        checkType(key, "set");
-        if (exists(key)) {
-            for (String member : setCache.get(key)) {
-                return member;
+    public synchronized Set<String> spop(String key, long count) {
+        Set<String> members = srandmember(key, count);
+        if (!members.isEmpty()) {
+            for (String member : members) {
+                setCache.removeValue(key, member);
             }
+            keyModified(key);
         }
-        return null;
+        return members;
     }
 
     @Override
-    public synchronized List<String> srandmember(String key, long count) {
+    public synchronized Set<String> srandmember(String key, long count) {
         boolean negative = (count < 0);
         count = Math.abs(count);
-        List<String> lst = new ArrayList<>((int) count);
-        while (lst.size() < (int) count) {
+        Set<String> set = new HashSet<>((int) count);
+        while (set.size() < (int) count) {
             for (String member : setCache.get(key)) {
-                lst.add(member);
-                if (lst.size() == (int) count) {
+                set.add(member);
+                if (set.size() == (int) count) {
                     break;
                 }
             }
@@ -1102,7 +1100,7 @@ public final class RedisMock extends AbstractRedisMock {
                 break;
             }
         }
-        return lst;
+        return set;
     }
 
     @Override
@@ -1115,8 +1113,8 @@ public final class RedisMock extends AbstractRedisMock {
         if (setCache.removeValue(key, member)) {
             count += 1L;
         }
-        for (String memb : members) {
-            if (setCache.removeValue(key, memb)) {
+        for (String m : members) {
+            if (setCache.removeValue(key, m)) {
                 count += 1L;
             }
         }
@@ -1155,17 +1153,9 @@ public final class RedisMock extends AbstractRedisMock {
     @Override
     public synchronized ScanResult<Set<String>> sscan(String key, long cursor, String... options) {
         checkType(key, "set");
-        Long count = null;
-        Pattern match = null;
-        for (int idx = 0; idx < options.length; ++idx) {
-            if (options[idx].equals("count")) {
-                count = Long.valueOf(options[idx + 1]);
-            } else if (options[idx].equals("match")) {
-                match = Pattern.compile(GlobToRegEx.convertGlobToRegEx(options[idx + 1]));
-            }
-        }
-        if (count == null) {
-            count = 10L;
+        MatchAndCount matchAndCount = MatchAndCount.parse(options);
+        if (matchAndCount.count == null) {
+            matchAndCount.count = 10L;
         }
         Set<String> scanned = new HashSet<>();
         Set<String> members = smembers(key);
@@ -1173,10 +1163,10 @@ public final class RedisMock extends AbstractRedisMock {
         for (String member : members) {
             idx += 1;
             if (idx > cursor) {
-                if (match == null || match.matcher(member).matches()) {
+                if (matchAndCount.match == null || matchAndCount.match.matcher(member).matches()) {
                     scanned.add(member);
                 }
-                if ((long) scanned.size() >= count) {
+                if ((long) scanned.size() >= matchAndCount.count) {
                     break;
                 }
             }

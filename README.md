@@ -61,14 +61,14 @@ $ mvn test
   - Support for most redis commands.
   - Unit tests for all supported commands.
 * 1.0.0
-  - Support for different versions of mock redis that mimic different
-    redis versions.
+  - Support for redis version: 3.2.8.
   - Lua scripting support.
+  - HyperLogLog support.
 * 2.0.0
   - Support for migrating data from a mock redis instance to a real
     redis instance.
   - Support for persisting a mock redis instance.
-  - HyperLogLog support.
+
 
 ## Versions
 

@@ -365,17 +365,12 @@ public abstract class AbstractRedisClient implements IRedisClient {
     }
 
     @Override
-    public String spop(String key) {
+    public Set<String> spop(String key, long count) {
         throw new NotImplementedException();
     }
 
     @Override
-    public String srandmember(String key) {
-        throw new NotImplementedException();
-    }
-
-    @Override
-    public List<String> srandmember(String key, long count) {
+    public Set<String> srandmember(String key, long count) {
         throw new NotImplementedException();
     }
 

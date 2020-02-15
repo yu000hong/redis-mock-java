@@ -1,6 +1,8 @@
 package org.rarefiedredis.redis;
 
 import org.junit.Test;
+import org.rarefiedredis.redis.cache.RedisSortedSetCache;
+
 import static org.junit.Assert.assertEquals;
 
 public class RedisSortedSetCacheTest {

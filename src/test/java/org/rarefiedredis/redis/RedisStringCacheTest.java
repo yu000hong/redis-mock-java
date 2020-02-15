@@ -1,6 +1,8 @@
 package org.rarefiedredis.redis;
 
 import org.junit.Test;
+import org.rarefiedredis.redis.cache.RedisStringCache;
+
 import static org.junit.Assert.assertEquals;
 
 public class RedisStringCacheTest {

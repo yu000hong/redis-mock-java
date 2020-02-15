@@ -1,18 +1,17 @@
 package org.rarefiedredis.redis.adapter.jedis;
 
+import org.rarefiedredis.redis.IRedisClient;
+import org.rarefiedredis.redis.IRedisSortedSet.ZsetPair;
+import org.rarefiedredis.redis.RedisMock;
 import redis.clients.jedis.Jedis;
 import redis.clients.jedis.Tuple;
 import redis.clients.jedis.exceptions.JedisException;
 
-import org.rarefiedredis.redis.RedisMock;
-import org.rarefiedredis.redis.IRedisClient;
-import org.rarefiedredis.redis.IRedisSortedSet.ZsetPair;
-
-import java.util.List;
 import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.HashSet;
 
 public class JedisAdapter extends Jedis {
 
@@ -36,70 +35,71 @@ public class JedisAdapter extends Jedis {
         return set;
     }
 
-    @Override public String set(final String key, String value) {
-        try { 
+    @Override
+    public String set(final String key, String value) {
+        try {
             return redis.set(key, value);
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             throw new JedisException(e);
         }
     }
 
 
-    @Override public String set(final String key, final String value, final String nxxx, final String expx,
-                                final long time) {
+    @Override
+    public String set(final String key, final String value, final String nxxx, final String expx,
+                      final long time) {
         try {
             return redis.set(key, value, nxxx, expx, String.valueOf(time));
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             throw new JedisException(e);
         }
     }
 
-    @Override public String get(final String key) {
+    @Override
+    public String get(final String key) {
         try {
             return redis.get(key);
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             throw new JedisException(e);
         }
     }
 
-    @Override public Boolean exists(final String key) {
+    @Override
+    public Boolean exists(final String key) {
         try {
             return redis.exists(key);
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             throw new JedisException(e);
         }
     }
 
-    @Override public Long del(final String... keys) {
+    @Override
+    public Long del(final String... keys) {
         try {
             return redis.del(keys);
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             throw new JedisException(e);
         }
     }
 
-    @Override public Long del(String key) {
+    @Override
+    public Long del(String key) {
         try {
             return redis.del(key);
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             throw new JedisException(e);
         }
     }
 
-    @Override public String type(final String key) {
+    @Override
+    public String type(final String key) {
         try {
             return redis.type(key);
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             throw new JedisException(e);
         }
     }
+
     /*
     public Set<String> keys(final String pattern) {
         checkIsInMulti();
@@ -125,52 +125,53 @@ public class JedisAdapter extends Jedis {
         return client.getIntegerReply();
     }
     */
-    @Override public Long expire(final String key, final int seconds) {
+    @Override
+    public Long expire(final String key, final int seconds) {
         try {
             return redis.expire(key, seconds) ? 1L : 0L;
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             throw new JedisException(e);
         }
     }
 
-    @Override public Long expireAt(final String key, final long unixTime) {
+    @Override
+    public Long expireAt(final String key, final long unixTime) {
         try {
             return redis.expireat(key, unixTime) ? 1L : 0L;
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             throw new JedisException(e);
         }
     }
 
-    @Override public Long ttl(final String key) {
+    @Override
+    public Long ttl(final String key) {
         try {
             return redis.ttl(key);
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             throw new JedisException(e);
         }
     }
-    
-    @Override public Long move(final String key, final int dbIndex) {
+
+    @Override
+    public Long move(final String key, final int dbIndex) {
         try {
             return redis.move(key, dbIndex);
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             throw new JedisException(e);
         }
     }
 
-    @Override public String getSet(final String key, final String value) {
+    @Override
+    public String getSet(final String key, final String value) {
         try {
             return redis.getset(key, value);
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             throw new JedisException(e);
         }
     }
 
-    @Override public List<String> mget(final String ... keys) {
+    @Override
+    public List<String> mget(final String... keys) {
         try {
             String[] mget = redis.mget(keys);
             List<String> lst = new ArrayList<String>(mget.length);
@@ -178,142 +179,142 @@ public class JedisAdapter extends Jedis {
                 lst.add(get);
             }
             return lst;
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             throw new JedisException(e);
         }
     }
 
-    @Override public Long setnx(final String key, final String value) {
+    @Override
+    public Long setnx(final String key, final String value) {
         try {
             return redis.setnx(key, value);
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             throw new JedisException(e);
         }
     }
 
-    @Override public String setex(final String key, final int seconds, final String value) {
+    @Override
+    public String setex(final String key, final int seconds, final String value) {
         try {
             return redis.setex(key, seconds, value);
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             throw new JedisException(e);
         }
     }
 
-    @Override public String mset(final String... keysvalues) {
+    @Override
+    public String mset(final String... keysvalues) {
         try {
             return redis.mset(keysvalues);
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             throw new JedisException(e);
         }
     }
 
-    @Override public Long msetnx(final String... keysvalues) {
+    @Override
+    public Long msetnx(final String... keysvalues) {
         try {
             return redis.msetnx(keysvalues) ? 1L : 0L;
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             throw new JedisException(e);
         }
     }
 
-    @Override public Long decrBy(final String key, final long integer) {
+    @Override
+    public Long decrBy(final String key, final long integer) {
         try {
             return redis.decrby(key, integer);
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             throw new JedisException(e);
         }
     }
 
-    @Override public Long decr(final String key) {
+    @Override
+    public Long decr(final String key) {
         try {
             return redis.decr(key);
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             throw new JedisException(e);
         }
     }
 
-    @Override public Long incrBy(final String key, final long integer) {
+    @Override
+    public Long incrBy(final String key, final long integer) {
         try {
             return redis.incrby(key, integer);
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             throw new JedisException(e);
         }
     }
 
-    @Override public Double incrByFloat(final String key, final double value) {
+    @Override
+    public Double incrByFloat(final String key, final double value) {
         try {
             return Double.parseDouble(redis.incrbyfloat(key, value));
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             throw new JedisException(e);
         }
     }
 
-    @Override public Long incr(final String key) {
+    @Override
+    public Long incr(final String key) {
         try {
             return redis.incr(key);
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             throw new JedisException(e);
         }
     }
 
-    @Override public Long append(final String key, final String value) {
+    @Override
+    public Long append(final String key, final String value) {
         try {
             return redis.append(key, value);
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             throw new JedisException(e);
         }
     }
 
-    @Override public String substr(final String key, final int start, final int end) {
+    @Override
+    public String substr(final String key, final int start, final int end) {
         try {
             return redis.getrange(key, start, end);
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             throw new JedisException(e);
         }
     }
 
-    @Override public Long hset(final String key, final String field, final String value) {
+    @Override
+    public Long hset(final String key, final String field, final String value) {
         try {
             return redis.hset(key, field, value) ? 1L : 0L;
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             throw new JedisException(e);
         }
     }
 
-    @Override public String hget(final String key, final String field) {
+    @Override
+    public String hget(final String key, final String field) {
         try {
             return redis.hget(key, field);
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             throw new JedisException(e);
         }
     }
 
-    @Override public Long hsetnx(final String key, final String field, final String value) {
+    @Override
+    public Long hsetnx(final String key, final String field, final String value) {
         try {
             return redis.hsetnx(key, field, value) ? 1L : 0L;
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             throw new JedisException(e);
         }
     }
 
-    @Override public String hmset(final String key, final Map<String, String> hash) {
+    @Override
+    public String hmset(final String key, final Map<String, String> hash) {
         try {
             String field = null, value = null;
-            String[] args = new String[(hash.size() - 1)*2];
+            String[] args = new String[(hash.size() - 1) * 2];
             int idx = 0;
             for (String f : hash.keySet()) {
                 if (field == null) {
@@ -325,14 +326,15 @@ public class JedisAdapter extends Jedis {
                 args[idx + 1] = hash.get(f);
                 idx += 2;
             }
-            return redis.hmset(key, field, value, args);
-        }
-        catch (Exception e) {
+            redis.hmset(key, field, value, args);
+        } catch (Exception e) {
             throw new JedisException(e);
         }
+        return "OK";//TODO
     }
 
-    @Override public List<String> hmget(final String key, final String... fields) {
+    @Override
+    public List<String> hmget(final String key, final String... fields) {
         try {
             String field = fields[0];
             String[] f = new String[fields.length - 1];
@@ -340,40 +342,40 @@ public class JedisAdapter extends Jedis {
                 f[idx - 1] = fields[idx];
             }
             return redis.hmget(key, field, f);
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             throw new JedisException(e);
         }
     }
 
-    @Override public Long hincrBy(final String key, final String field, final long value) {
+    @Override
+    public Long hincrBy(final String key, final String field, final long value) {
         try {
             return redis.hincrby(key, field, value);
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             throw new JedisException(e);
         }
     }
 
-    @Override public Double hincrByFloat(final String key, final String field, final double value) {
+    @Override
+    public Double hincrByFloat(final String key, final String field, final double value) {
         try {
             return Double.parseDouble(redis.hincrbyfloat(key, field, value));
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             throw new JedisException(e);
         }
     }
 
-    @Override public Boolean hexists(final String key, final String field) {
+    @Override
+    public Boolean hexists(final String key, final String field) {
         try {
             return redis.hexists(key, field);
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             throw new JedisException(e);
         }
     }
 
-    @Override public Long hdel(final String key, final String... fields) {
+    @Override
+    public Long hdel(final String key, final String... fields) {
         try {
             String field = fields[0];
             String[] f = new String[fields.length - 1];
@@ -381,49 +383,49 @@ public class JedisAdapter extends Jedis {
                 f[idx - 1] = fields[idx];
             }
             return redis.hdel(key, field, f);
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             throw new JedisException(e);
         }
     }
 
-    @Override public Long hlen(final String key) {
+    @Override
+    public Long hlen(final String key) {
         try {
             return redis.hlen(key);
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             throw new JedisException(e);
         }
     }
 
-    @Override public Set<String> hkeys(final String key) {
+    @Override
+    public Set<String> hkeys(final String key) {
         try {
             return redis.hkeys(key);
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             throw new JedisException(e);
         }
     }
 
-    @Override public List<String> hvals(final String key) {
+    @Override
+    public List<String> hvals(final String key) {
         try {
             return redis.hvals(key);
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             throw new JedisException(e);
         }
     }
 
-    @Override public Map<String, String> hgetAll(final String key) {
+    @Override
+    public Map<String, String> hgetAll(final String key) {
         try {
             return redis.hgetall(key);
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             throw new JedisException(e);
         }
     }
 
-    @Override public Long rpush(final String key, final String... strings) {
+    @Override
+    public Long rpush(final String key, final String... strings) {
         try {
             String element = strings[0];
             String[] elements = new String[strings.length - 1];
@@ -431,13 +433,13 @@ public class JedisAdapter extends Jedis {
                 elements[idx - 1] = strings[idx];
             }
             return redis.rpush(key, element, elements);
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             throw new JedisException(e);
         }
     }
 
-    @Override public Long lpush(final String key, final String... strings) {
+    @Override
+    public Long lpush(final String key, final String... strings) {
         try {
             String element = strings[0];
             String[] elements = new String[strings.length - 1];
@@ -445,94 +447,94 @@ public class JedisAdapter extends Jedis {
                 elements[idx - 1] = strings[idx];
             }
             return redis.lpush(key, element, elements);
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             throw new JedisException(e);
         }
     }
 
-    @Override public Long llen(final String key) {
+    @Override
+    public Long llen(final String key) {
         try {
             return redis.llen(key);
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             throw new JedisException(e);
         }
     }
 
-    @Override public List<String> lrange(final String key, final long start, final long end) {
+    @Override
+    public List<String> lrange(final String key, final long start, final long end) {
         try {
             return redis.lrange(key, start, end);
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             throw new JedisException(e);
         }
     }
 
-    @Override public String ltrim(final String key, final long start, final long end) {
+    @Override
+    public String ltrim(final String key, final long start, final long end) {
         try {
             return redis.ltrim(key, start, end);
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             throw new JedisException(e);
         }
     }
 
-    @Override public String lindex(final String key, final long index) {
+    @Override
+    public String lindex(final String key, final long index) {
         try {
             return redis.lindex(key, index);
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             throw new JedisException(e);
         }
     }
 
-    @Override public String lset(final String key, final long index, final String value) {
+    @Override
+    public String lset(final String key, final long index, final String value) {
         try {
             return redis.lset(key, index, value);
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             throw new JedisException(e);
         }
     }
 
-    @Override public Long lrem(final String key, final long count, final String value) {
+    @Override
+    public Long lrem(final String key, final long count, final String value) {
         try {
             return redis.lrem(key, count, value);
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             throw new JedisException(e);
         }
     }
 
-    @Override public String lpop(final String key) {
+    @Override
+    public String lpop(final String key) {
         try {
             return redis.lpop(key);
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             throw new JedisException(e);
         }
     }
 
-    @Override public String rpop(final String key) {
+    @Override
+    public String rpop(final String key) {
         try {
             return redis.rpop(key);
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             throw new JedisException(e);
         }
     }
 
-    @Override public String rpoplpush(final String srckey, final String dstkey) {
+    @Override
+    public String rpoplpush(final String srckey, final String dstkey) {
         try {
             return redis.rpoplpush(srckey, dstkey);
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             throw new JedisException(e);
         }
     }
 
-    @Override public Long sadd(final String key, final String... members) {
+    @Override
+    public Long sadd(final String key, final String... members) {
         try {
             String member = members[0];
             String[] m = new String[members.length - 1];
@@ -540,22 +542,22 @@ public class JedisAdapter extends Jedis {
                 m[idx - 1] = members[idx];
             }
             return redis.sadd(key, member, m);
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             throw new JedisException(e);
         }
     }
 
-    @Override public Set<String> smembers(final String key) {
+    @Override
+    public Set<String> smembers(final String key) {
         try {
             return redis.smembers(key);
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             throw new JedisException(e);
         }
     }
 
-    @Override public Long srem(final String key, final String... members) {
+    @Override
+    public Long srem(final String key, final String... members) {
         try {
             String member = members[0];
             String[] m = new String[members.length - 1];
@@ -563,49 +565,55 @@ public class JedisAdapter extends Jedis {
                 m[idx - 1] = members[idx];
             }
             return redis.srem(key, member, m);
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             throw new JedisException(e);
         }
     }
 
-    @Override public String spop(final String key) {
+    @Override
+    public String spop(final String key) {
         try {
-            return redis.spop(key);
-        }
-        catch (Exception e) {
+            Set<String> ret = redis.spop(key, 1);
+            if (ret.isEmpty()) {
+                return null;
+            } else {
+                //TODO
+                throw new UnsupportedOperationException();
+            }
+        } catch (Exception e) {
             throw new JedisException(e);
         }
     }
 
-    @Override public Long smove(final String srckey, final String dstkey, final String member) {
+    @Override
+    public Long smove(final String srckey, final String dstkey, final String member) {
         try {
             return redis.smove(srckey, dstkey, member) ? 1L : 0L;
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             throw new JedisException(e);
         }
     }
 
-    @Override public Long scard(final String key) {
+    @Override
+    public Long scard(final String key) {
         try {
             return redis.scard(key);
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             throw new JedisException(e);
         }
     }
 
-    @Override public Boolean sismember(final String key, final String member) {
+    @Override
+    public Boolean sismember(final String key, final String member) {
         try {
             return redis.sismember(key, member);
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             throw new JedisException(e);
         }
     }
 
-    @Override public Set<String> sinter(final String... keys) {
+    @Override
+    public Set<String> sinter(final String... keys) {
         try {
             String key = keys[0];
             String[] k = new String[keys.length - 1];
@@ -613,13 +621,13 @@ public class JedisAdapter extends Jedis {
                 k[idx - 1] = keys[idx];
             }
             return redis.sinter(key, k);
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             throw new JedisException(e);
         }
     }
 
-    @Override public Long sinterstore(final String dstkey, final String... keys) {
+    @Override
+    public Long sinterstore(final String dstkey, final String... keys) {
         try {
             String key = keys[0];
             String[] k = new String[keys.length - 1];
@@ -627,13 +635,13 @@ public class JedisAdapter extends Jedis {
                 k[idx - 1] = keys[idx];
             }
             return redis.sinterstore(dstkey, key, k);
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             throw new JedisException(e);
         }
     }
 
-    @Override public Set<String> sunion(final String... keys) {
+    @Override
+    public Set<String> sunion(final String... keys) {
         try {
             String key = keys[0];
             String[] k = new String[keys.length - 1];
@@ -641,13 +649,13 @@ public class JedisAdapter extends Jedis {
                 k[idx - 1] = keys[idx];
             }
             return redis.sunion(key, k);
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             throw new JedisException(e);
         }
     }
 
-    @Override public Long sunionstore(final String dstkey, final String... keys) {
+    @Override
+    public Long sunionstore(final String dstkey, final String... keys) {
         try {
             String key = keys[0];
             String[] k = new String[keys.length - 1];
@@ -655,13 +663,13 @@ public class JedisAdapter extends Jedis {
                 k[idx - 1] = keys[idx];
             }
             return redis.sunionstore(dstkey, key, k);
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             throw new JedisException(e);
         }
     }
 
-    @Override public Set<String> sdiff(final String... keys) {
+    @Override
+    public Set<String> sdiff(final String... keys) {
         try {
             String key = keys[0];
             String[] k = new String[keys.length - 1];
@@ -669,13 +677,13 @@ public class JedisAdapter extends Jedis {
                 k[idx - 1] = keys[idx];
             }
             return redis.sdiff(key, k);
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             throw new JedisException(e);
         }
     }
 
-    @Override public Long sdiffstore(final String dstkey, final String... keys) {
+    @Override
+    public Long sdiffstore(final String dstkey, final String... keys) {
         try {
             String key = keys[0];
             String[] k = new String[keys.length - 1];
@@ -683,44 +691,50 @@ public class JedisAdapter extends Jedis {
                 k[idx - 1] = keys[idx];
             }
             return redis.sdiffstore(dstkey, key, k);
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             throw new JedisException(e);
         }
     }
 
-    @Override public String srandmember(final String key) {
+    @Override
+    public String srandmember(final String key) {
         try {
-            return redis.srandmember(key);
-        }
-        catch (Exception e) {
+            Set<String> ret = redis.srandmember(key, 1);
+            if (ret.isEmpty()) {
+                return null;
+            } else {
+                //TODO
+                throw new UnsupportedOperationException();
+            }
+        } catch (Exception e) {
             throw new JedisException(e);
         }
     }
 
-    @Override public List<String> srandmember(final String key, final int count) {
+    @Override
+    public List<String> srandmember(final String key, final int count) {
         try {
-            return redis.srandmember(key, count);
-        }
-        catch (Exception e) {
+            return new ArrayList<>(redis.srandmember(key, count));
+        } catch (Exception e) {
             throw new JedisException(e);
         }
     }
 
-    @Override public Long zadd(final String key, final double score, final String member) {
+    @Override
+    public Long zadd(final String key, final double score, final String member) {
         try {
             return redis.zadd(key, new ZsetPair(member, score));
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             throw new JedisException(e);
         }
     }
 
-    @Override public Long zadd(final String key, final Map<String, Double> scoreMembers) {
+    @Override
+    public Long zadd(final String key, final Map<String, Double> scoreMembers) {
         try {
             Double score = null;
             String member = null;
-            List<ZsetPair> scoresmembers = new ArrayList<ZsetPair>((scoreMembers.size() - 1)*2);
+            List<ZsetPair> scoresmembers = new ArrayList<ZsetPair>((scoreMembers.size() - 1) * 2);
             for (String m : scoreMembers.keySet()) {
                 if (m == null) {
                     member = m;
@@ -729,23 +743,23 @@ public class JedisAdapter extends Jedis {
                 }
                 scoresmembers.add(new ZsetPair(m, scoreMembers.get(m)));
             }
-            return redis.zadd(key, new ZsetPair(member, score), (ZsetPair[])scoresmembers.toArray());
-        }
-        catch (Exception e) {
+            return redis.zadd(key, new ZsetPair(member, score), (ZsetPair[]) scoresmembers.toArray());
+        } catch (Exception e) {
             throw new JedisException(e);
         }
     }
 
-    @Override public Set<String> zrange(final String key, final long start, final long end) {
+    @Override
+    public Set<String> zrange(final String key, final long start, final long end) {
         try {
             return ZsetPair.members(redis.zrange(key, start, end));
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             throw new JedisException(e);
         }
     }
 
-    @Override public Long zrem(final String key, final String... members) {
+    @Override
+    public Long zrem(final String key, final String... members) {
         try {
             String member = members[0];
             String[] ms = new String[members.length - 1];
@@ -753,95 +767,95 @@ public class JedisAdapter extends Jedis {
                 ms[idx - 1] = members[idx];
             }
             return redis.zrem(key, member, ms);
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             throw new JedisException(e);
         }
     }
 
-    @Override public Double zincrby(final String key, final double score, final String member) {
+    @Override
+    public Double zincrby(final String key, final double score, final String member) {
         try {
             return Double.parseDouble(redis.zincrby(key, score, member));
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             throw new JedisException(e);
         }
     }
 
-    @Override public Long zrank(final String key, final String member) {
+    @Override
+    public Long zrank(final String key, final String member) {
         try {
             return redis.zrank(key, member);
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             throw new JedisException(e);
         }
     }
 
-    @Override public Long zrevrank(final String key, final String member) {
+    @Override
+    public Long zrevrank(final String key, final String member) {
         try {
             return redis.zrevrank(key, member);
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             throw new JedisException(e);
         }
     }
 
-    @Override public Set<String> zrevrange(final String key, final long start, final long end) {
+    @Override
+    public Set<String> zrevrange(final String key, final long start, final long end) {
         try {
             return ZsetPair.members(redis.zrevrange(key, start, end));
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             throw new JedisException(e);
         }
     }
 
-    @Override public Set<Tuple> zrangeWithScores(final String key, final long start, final long end) {
+    @Override
+    public Set<Tuple> zrangeWithScores(final String key, final long start, final long end) {
         try {
             return toTupleSet(redis.zrange(key, start, end, "withscores"));
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             throw new JedisException(e);
         }
     }
 
-    @Override public Set<Tuple> zrevrangeWithScores(final String key, final long start, final long end) {
+    @Override
+    public Set<Tuple> zrevrangeWithScores(final String key, final long start, final long end) {
         try {
             return toTupleSet(redis.zrevrange(key, start, end, "withscores"));
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             throw new JedisException(e);
         }
     }
 
-    @Override public Long zcard(final String key) {
+    @Override
+    public Long zcard(final String key) {
         try {
             return redis.zcard(key);
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             throw new JedisException(e);
         }
     }
 
-    @Override public Double zscore(final String key, final String member) {
+    @Override
+    public Double zscore(final String key, final String member) {
         try {
             return zscore(key, member);
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             throw new JedisException(e);
         }
     }
 
-    @Override public String watch(final String ... keys) {
+    @Override
+    public String watch(final String... keys) {
         try {
             for (String key : keys) {
                 redis.watch(key);
             }
             return "OK";
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             throw new JedisException(e);
         }
     }
+
     /*
     public List<String> sort(final String key) {
         checkIsInMulti();
@@ -917,208 +931,208 @@ public class JedisAdapter extends Jedis {
         return brpop(getArgsAddTimeout(timeout, keys));
     }
     */
-    @Override public Long zcount(final String key, final double min, final double max) {
+    @Override
+    public Long zcount(final String key, final double min, final double max) {
         try {
             return redis.zcount(key, min, max);
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             throw new JedisException(e);
         }
     }
 
-    @Override public Long zcount(final String key, final String min, final String max) {
+    @Override
+    public Long zcount(final String key, final String min, final String max) {
         try {
             return redis.zcount(key, Double.parseDouble(min), Double.parseDouble(max));
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             throw new JedisException(e);
         }
     }
 
-    @Override public Set<String> zrangeByScore(final String key, final double min, final double max) {
+    @Override
+    public Set<String> zrangeByScore(final String key, final double min, final double max) {
         try {
             return ZsetPair.members(redis.zrangebyscore(key, String.valueOf(min), String.valueOf(max)));
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             throw new JedisException(e);
         }
     }
 
-    @Override public Set<String> zrangeByScore(final String key, final String min, final String max) {
+    @Override
+    public Set<String> zrangeByScore(final String key, final String min, final String max) {
         try {
             return ZsetPair.members(redis.zrangebyscore(key, min, max));
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             throw new JedisException(e);
         }
     }
 
-    @Override public Set<String> zrangeByScore(final String key, final double min, final double max,
-                                               final int offset, final int count) {
+    @Override
+    public Set<String> zrangeByScore(final String key, final double min, final double max,
+                                     final int offset, final int count) {
         try {
             return ZsetPair.members(redis.zrangebyscore(key, String.valueOf(min), String.valueOf(max), "limit", String.valueOf(offset), String.valueOf(count)));
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             throw new JedisException(e);
         }
     }
 
-    @Override public Set<String> zrangeByScore(final String key, final String min, final String max,
-                                               final int offset, final int count) {
+    @Override
+    public Set<String> zrangeByScore(final String key, final String min, final String max,
+                                     final int offset, final int count) {
         try {
             return ZsetPair.members(redis.zrangebyscore(key, min, max, "limit", String.valueOf(offset), String.valueOf(count)));
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             throw new JedisException(e);
         }
     }
 
-    @Override public Set<Tuple> zrangeByScoreWithScores(final String key, final double min, final double max) {
+    @Override
+    public Set<Tuple> zrangeByScoreWithScores(final String key, final double min, final double max) {
         try {
             return toTupleSet(redis.zrangebyscore(key, String.valueOf(min), String.valueOf(max), "withscores"));
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             throw new JedisException(e);
         }
     }
 
-    @Override public Set<Tuple> zrangeByScoreWithScores(final String key, final String min, final String max) {
+    @Override
+    public Set<Tuple> zrangeByScoreWithScores(final String key, final String min, final String max) {
         try {
             return toTupleSet(redis.zrangebyscore(key, min, max, "withscores"));
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             throw new JedisException(e);
         }
     }
 
-    @Override public Set<Tuple> zrangeByScoreWithScores(final String key, final double min, final double max,
-                                                        final int offset, final int count) {
+    @Override
+    public Set<Tuple> zrangeByScoreWithScores(final String key, final double min, final double max,
+                                              final int offset, final int count) {
         try {
             return toTupleSet(redis.zrangebyscore(key, String.valueOf(min), String.valueOf(max), "limit", String.valueOf(offset), String.valueOf(count), "withscores"));
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             throw new JedisException(e);
         }
     }
 
-    @Override public Set<Tuple> zrangeByScoreWithScores(final String key, final String min, final String max,
+    @Override
+    public Set<Tuple> zrangeByScoreWithScores(final String key, final String min, final String max,
                                               final int offset, final int count) {
         try {
             return toTupleSet(redis.zrangebyscore(key, min, max, "limit", String.valueOf(offset), String.valueOf(count), "withscores"));
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             throw new JedisException(e);
         }
     }
 
-    @Override public Set<String> zrevrangeByScore(final String key, final double max, final double min) {
+    @Override
+    public Set<String> zrevrangeByScore(final String key, final double max, final double min) {
         try {
             return ZsetPair.members(redis.zrevrangebyscore(key, String.valueOf(max), String.valueOf(min)));
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             throw new JedisException(e);
         }
     }
 
-    @Override public Set<String> zrevrangeByScore(final String key, final String max, final String min) {
+    @Override
+    public Set<String> zrevrangeByScore(final String key, final String max, final String min) {
         try {
             return ZsetPair.members(redis.zrevrangebyscore(key, max, min));
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             throw new JedisException(e);
         }
     }
 
-    @Override public Set<String> zrevrangeByScore(final String key, final double max, final double min,
-                                                  final int offset, final int count) {
+    @Override
+    public Set<String> zrevrangeByScore(final String key, final double max, final double min,
+                                        final int offset, final int count) {
         try {
             return ZsetPair.members(redis.zrevrangebyscore(key, String.valueOf(max), String.valueOf(min), "limit", String.valueOf(offset), String.valueOf(count)));
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             throw new JedisException(e);
         }
     }
 
-    @Override public Set<Tuple> zrevrangeByScoreWithScores(final String key, final double max, final double min) {
+    @Override
+    public Set<Tuple> zrevrangeByScoreWithScores(final String key, final double max, final double min) {
         try {
             return toTupleSet(redis.zrevrangebyscore(key, String.valueOf(max), String.valueOf(min), "withscores"));
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             throw new JedisException(e);
         }
     }
 
-    @Override public Set<Tuple> zrevrangeByScoreWithScores(final String key, final double max,
-                                                           final double min, final int offset, final int count) {
+    @Override
+    public Set<Tuple> zrevrangeByScoreWithScores(final String key, final double max,
+                                                 final double min, final int offset, final int count) {
         try {
             return toTupleSet(redis.zrevrangebyscore(key, String.valueOf(max), String.valueOf(min), "limit", String.valueOf(offset), String.valueOf(count), "withscores"));
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             throw new JedisException(e);
         }
     }
 
-    @Override public Set<Tuple> zrevrangeByScoreWithScores(final String key, final String max,
+    @Override
+    public Set<Tuple> zrevrangeByScoreWithScores(final String key, final String max,
                                                  final String min, final int offset, final int count) {
         try {
             return toTupleSet(redis.zrevrangebyscore(key, max, min, "limit", String.valueOf(offset), String.valueOf(count), "withscores"));
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             throw new JedisException(e);
         }
     }
 
-    @Override public Set<String> zrevrangeByScore(final String key, final String max, final String min,
-                                                  final int offset, final int count) {
+    @Override
+    public Set<String> zrevrangeByScore(final String key, final String max, final String min,
+                                        final int offset, final int count) {
         try {
             return ZsetPair.members(redis.zrevrangebyscore(key, max, min, "limit", String.valueOf(offset), String.valueOf(count)));
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             throw new JedisException(e);
         }
     }
 
-    @Override public Set<Tuple> zrevrangeByScoreWithScores(final String key, final String max, final String min) {
+    @Override
+    public Set<Tuple> zrevrangeByScoreWithScores(final String key, final String max, final String min) {
         try {
             return toTupleSet(redis.zrevrangebyscore(key, max, min, "withscores"));
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             throw new JedisException(e);
         }
     }
 
-    @Override public Long zremrangeByRank(final String key, final long start, final long end) {
+    @Override
+    public Long zremrangeByRank(final String key, final long start, final long end) {
         try {
             return redis.zremrangebyrank(key, start, end);
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             throw new JedisException(e);
         }
     }
 
-    @Override public Long zremrangeByScore(final String key, final double start, final double end) {
+    @Override
+    public Long zremrangeByScore(final String key, final double start, final double end) {
         try {
             return redis.zremrangebyscore(key, String.valueOf(start), String.valueOf(end));
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             throw new JedisException(e);
         }
     }
 
-    @Override public Long zremrangeByScore(final String key, final String start, final String end) {
+    @Override
+    public Long zremrangeByScore(final String key, final String start, final String end) {
         try {
             return redis.zremrangebyscore(key, start, end);
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             throw new JedisException(e);
         }
     }
 
-    @Override public Long zunionstore(final String dstkey, final String... sets) {
+    @Override
+    public Long zunionstore(final String dstkey, final String... sets) {
         try {
             return redis.zunionstore(dstkey, sets.length, sets);
-        }
-        catch (Exception e) {
+        } catch (Exception e) {
             throw new JedisException(e);
         }
     }

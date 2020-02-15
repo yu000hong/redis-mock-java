@@ -473,7 +473,7 @@ public class RedisMockSetTest {
         String v = "value";
         redis.set(k, v);
         try {
-            redis.spop(k);
+            redis.spop(k, 1);
         }
         catch (WrongTypeException wte) {
             assertEquals(true, true);

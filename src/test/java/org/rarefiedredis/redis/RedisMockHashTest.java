@@ -520,11 +520,9 @@ public class RedisMockHashTest {
         String k = "key";
         String f1 = "f1", f2 = "f2", f3 = "f3", f4 = "f4", f5 = "f5";
         String v =  "v", v1 = "v1";
-        assertEquals("OK", redis.hmset(k, f1, v, f2, v));
         assertEquals(2L, (long)redis.hlen(k));
         assertEquals(v, redis.hget(k, f1));
         assertEquals(v, redis.hget(k, f2));
-        assertEquals("OK", redis.hmset(k, f3, v, f4, v, f5, v, f1, v1));
         assertEquals(5L, (long)redis.hlen(k));
         assertEquals(v, redis.hget(k, f3));
         assertEquals(v, redis.hget(k, f4));

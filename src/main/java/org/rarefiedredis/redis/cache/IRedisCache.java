@@ -1,4 +1,4 @@
-package org.rarefiedredis.redis;
+package org.rarefiedredis.redis.cache;
 
 /**
  * Interface for all key-value caches. An IRedisCache
@@ -15,7 +15,7 @@ public interface IRedisCache<T, U> {
      *
      * @return true if the key exists in the cache, or false.
      */
-    Boolean exists(String key);
+    boolean exists(String key);
     /**
      * Remove the key from the cache.
      *
@@ -48,7 +48,7 @@ public interface IRedisCache<T, U> {
      *
      * @return true if the value was removed, or false.
      */
-    Boolean removeValue(String key, T value);
+    boolean removeValue(String key, T value);
     /**
      * Return the type identifier of this cache.
      *

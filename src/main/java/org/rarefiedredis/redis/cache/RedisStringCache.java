@@ -1,7 +1,7 @@
-package org.rarefiedredis.redis;
+package org.rarefiedredis.redis.cache;
 
-import java.util.Map;
 import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Cache key-value pairs as strings.
@@ -17,26 +17,31 @@ public final class RedisStringCache implements IRedisCache<String, String> {
      * Constructor. Initializes an empty cache.
      */
     public RedisStringCache() {
-        cache = new HashMap<String, String>();
+        cache = new HashMap<>();
     }
 
-    @Override public Boolean exists(final String key) {
+    @Override
+    public boolean exists(final String key) {
         return cache.containsKey(key);
     }
 
-    @Override public void remove(final String key) {
+    @Override
+    public void remove(final String key) {
         cache.remove(key);
     }
 
-    @Override public void set(final String key, final String value, final Object ... arguments) {
+    @Override
+    public void set(final String key, final String value, final Object... arguments) {
         cache.put(key, value);
     }
 
-    @Override public String get(final String key) {
+    @Override
+    public String get(final String key) {
         return cache.get(key);
     }
 
-    @Override public Boolean removeValue(final String key, final String value) {
+    @Override
+    public boolean removeValue(final String key, final String value) {
         if (!exists(key)) {
             return false;
         }
@@ -47,7 +52,8 @@ public final class RedisStringCache implements IRedisCache<String, String> {
         return false;
     }
 
-    @Override public String type() {
+    @Override
+    public String type() {
         return "string";
     }
 
