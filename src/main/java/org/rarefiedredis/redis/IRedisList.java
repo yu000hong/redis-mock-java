@@ -1,5 +1,10 @@
 package org.rarefiedredis.redis;
 
+import org.rarefiedredis.redis.exception.IndexOutOfRangeException;
+import org.rarefiedredis.redis.exception.NoKeyException;
+import org.rarefiedredis.redis.exception.NotImplementedException;
+import org.rarefiedredis.redis.exception.WrongTypeException;
+
 import java.util.List;
 
 public interface IRedisList {

@@ -1,22 +1,21 @@
 package org.rarefiedredis.redis.adapter.jedis;
 
-import org.junit.Test;
 import org.junit.Before;
 import org.junit.Ignore;
-import static org.junit.Assert.assertEquals;
-
+import org.junit.Test;
+import org.rarefiedredis.redis.IRedisClient;
+import org.rarefiedredis.redis.RandomKey;
+import org.rarefiedredis.redis.exception.ArgException;
+import org.rarefiedredis.redis.exception.BitArgException;
+import org.rarefiedredis.redis.exception.NotFloatException;
+import org.rarefiedredis.redis.exception.NotImplementedException;
+import org.rarefiedredis.redis.exception.NotIntegerException;
+import org.rarefiedredis.redis.exception.SyntaxErrorException;
+import org.rarefiedredis.redis.exception.WrongTypeException;
 import redis.clients.jedis.JedisPool;
 import redis.clients.jedis.JedisPoolConfig;
 
-import org.rarefiedredis.redis.IRedisClient;
-import org.rarefiedredis.redis.RandomKey;
-import org.rarefiedredis.redis.ArgException;
-import org.rarefiedredis.redis.BitArgException;
-import org.rarefiedredis.redis.NotFloatException;
-import org.rarefiedredis.redis.WrongTypeException;
-import org.rarefiedredis.redis.NotIntegerException;
-import org.rarefiedredis.redis.SyntaxErrorException;
-import org.rarefiedredis.redis.NotImplementedException;
+import static org.junit.Assert.assertEquals;
 
 public class JedisIRedisClientStringIT {
 

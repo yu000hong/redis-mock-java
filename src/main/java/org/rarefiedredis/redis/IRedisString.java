@@ -1,5 +1,13 @@
 package org.rarefiedredis.redis;
 
+import org.rarefiedredis.redis.exception.ArgException;
+import org.rarefiedredis.redis.exception.BitArgException;
+import org.rarefiedredis.redis.exception.NotFloatException;
+import org.rarefiedredis.redis.exception.NotImplementedException;
+import org.rarefiedredis.redis.exception.NotIntegerException;
+import org.rarefiedredis.redis.exception.SyntaxErrorException;
+import org.rarefiedredis.redis.exception.WrongTypeException;
+
 /**
  * Interface for redis string commands.
  */

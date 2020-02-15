@@ -1,10 +1,18 @@
 package org.rarefiedredis.redis;
 
-import java.util.Set;
+import org.rarefiedredis.redis.exception.NotFloatException;
+import org.rarefiedredis.redis.exception.NotFloatMinMaxException;
+import org.rarefiedredis.redis.exception.NotImplementedException;
+import org.rarefiedredis.redis.exception.NotIntegerException;
+import org.rarefiedredis.redis.exception.NotValidStringRangeItemException;
+import org.rarefiedredis.redis.exception.SyntaxErrorException;
+import org.rarefiedredis.redis.exception.WrongTypeException;
+
+import java.util.Comparator;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
-import java.util.HashMap;
-import java.util.Comparator;
+import java.util.Set;
 
 public interface IRedisSortedSet {
 

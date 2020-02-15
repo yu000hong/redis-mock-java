@@ -1,42 +1,23 @@
 package org.rarefiedredis.redis.adapter.jedis;
 
-import redis.clients.jedis.JedisPool;
-import redis.clients.jedis.Jedis;
-import redis.clients.jedis.Tuple;
-import redis.clients.jedis.BitOP;
-import redis.clients.jedis.BitPosParams;
-import redis.clients.jedis.ScanParams;
-import redis.clients.jedis.BinaryClient.LIST_POSITION;
-
 import org.rarefiedredis.redis.IRedisClient;
-import org.rarefiedredis.redis.AbstractRedisClient;
-import org.rarefiedredis.redis.ScanResult;
-import org.rarefiedredis.redis.IRedisSortedSet.ZsetPair;
-import org.rarefiedredis.redis.ArgException;
-import org.rarefiedredis.redis.NoKeyException;
-import org.rarefiedredis.redis.BitArgException;
-import org.rarefiedredis.redis.NotFloatException;
-import org.rarefiedredis.redis.WrongTypeException;
-import org.rarefiedredis.redis.NotIntegerException;
-import org.rarefiedredis.redis.SyntaxErrorException;
-import org.rarefiedredis.redis.NotFloatHashException;
-import org.rarefiedredis.redis.NotIntegerHashException;
-import org.rarefiedredis.redis.NotImplementedException;
-import org.rarefiedredis.redis.NotFloatMinMaxException;
-import org.rarefiedredis.redis.IndexOutOfRangeException;
-import org.rarefiedredis.redis.ExecWithoutMultiException;
-import org.rarefiedredis.redis.DiscardWithoutMultiException;
-import org.rarefiedredis.redis.NotValidStringRangeItemException;
+import org.rarefiedredis.redis.exception.ArgException;
+import org.rarefiedredis.redis.exception.IndexOutOfRangeException;
+import org.rarefiedredis.redis.exception.NoKeyException;
+import org.rarefiedredis.redis.exception.NotFloatException;
+import org.rarefiedredis.redis.exception.NotFloatHashException;
+import org.rarefiedredis.redis.exception.NotFloatMinMaxException;
+import org.rarefiedredis.redis.exception.NotIntegerException;
+import org.rarefiedredis.redis.exception.NotIntegerHashException;
+import org.rarefiedredis.redis.exception.NotValidStringRangeItemException;
+import org.rarefiedredis.redis.exception.SyntaxErrorException;
+import org.rarefiedredis.redis.exception.WrongTypeException;
+import redis.clients.jedis.Jedis;
+import redis.clients.jedis.JedisPool;
 
-import java.util.List;
-import java.util.ArrayList;
-import java.util.Map;
-import java.util.HashMap;
-import java.util.Set;
-import java.util.HashSet;
-
-import java.lang.reflect.Method;
 import java.lang.reflect.InvocationTargetException;
+import java.util.HashMap;
+import java.util.Map;
 
 public final class JedisIRedisClient extends AbstractJedisIRedisClient {
 

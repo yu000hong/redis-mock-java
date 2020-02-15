@@ -1,10 +1,14 @@
 package org.rarefiedredis.redis;
 
 import org.junit.Test;
-import org.junit.Ignore;
-import static org.junit.Assert.assertEquals;
+import org.rarefiedredis.redis.exception.IndexOutOfRangeException;
+import org.rarefiedredis.redis.exception.NoKeyException;
+import org.rarefiedredis.redis.exception.SyntaxErrorException;
+import org.rarefiedredis.redis.exception.WrongTypeException;
 
 import java.util.List;
+
+import static org.junit.Assert.assertEquals;
 
 public class RedisMockListTest {
 

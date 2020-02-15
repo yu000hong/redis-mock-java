@@ -1,14 +1,24 @@
 package org.rarefiedredis.redis;
 
-import java.util.Map;
-import java.util.HashMap;
-import java.util.List;
-import java.util.ArrayList;
-import java.util.Set;
-import java.util.SortedSet;
-import java.util.Date;
+import org.rarefiedredis.redis.exception.ArgException;
+import org.rarefiedredis.redis.exception.BitArgException;
+import org.rarefiedredis.redis.exception.DiscardWithoutMultiException;
+import org.rarefiedredis.redis.exception.ExecWithoutMultiException;
+import org.rarefiedredis.redis.exception.IndexOutOfRangeException;
+import org.rarefiedredis.redis.exception.NoKeyException;
+import org.rarefiedredis.redis.exception.NotFloatException;
+import org.rarefiedredis.redis.exception.NotFloatHashException;
+import org.rarefiedredis.redis.exception.NotFloatMinMaxException;
+import org.rarefiedredis.redis.exception.NotImplementedException;
+import org.rarefiedredis.redis.exception.NotIntegerException;
+import org.rarefiedredis.redis.exception.NotIntegerHashException;
+import org.rarefiedredis.redis.exception.NotValidStringRangeItemException;
+import org.rarefiedredis.redis.exception.SyntaxErrorException;
+import org.rarefiedredis.redis.exception.WrongTypeException;
 
-import org.rarefiedredis.redis.IRedisSortedSet.ZsetPair;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 public abstract class AbstractRedisClient implements IRedisClient {
 
@@ -76,11 +86,13 @@ public abstract class AbstractRedisClient implements IRedisClient {
         throw new NotImplementedException();
     }
 
-    @Override public String rename(String key, String newkey) throws NotImplementedException {
+    @Override
+    public String rename(String key, String newKey) throws NotImplementedException {
         throw new NotImplementedException();
     }
 
-    @Override public Boolean renamenx(String key, String newkey) throws NotImplementedException {
+    @Override
+    public Boolean renamenx(String key, String newKey) throws NotImplementedException {
         throw new NotImplementedException();
     }
 

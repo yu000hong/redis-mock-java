@@ -1,13 +1,15 @@
 package org.rarefiedredis.redis;
 
 import org.junit.Test;
-import org.junit.Ignore;
-import static org.junit.Assert.assertEquals;
+import org.rarefiedredis.redis.exception.SyntaxErrorException;
+import org.rarefiedredis.redis.exception.WrongTypeException;
 
-import java.util.Set;
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
-import java.util.ArrayList;
+import java.util.Set;
+
+import static org.junit.Assert.assertEquals;
 
 public class RedisMockSetTest {
 

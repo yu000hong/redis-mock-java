@@ -1,30 +1,16 @@
 package org.rarefiedredis.redis.adapter.jedis;
 
-import redis.clients.jedis.JedisPool;
+import org.rarefiedredis.redis.IRedisClient;
+import org.rarefiedredis.redis.exception.ExecWithoutMultiException;
 import redis.clients.jedis.Jedis;
+import redis.clients.jedis.JedisPool;
 import redis.clients.jedis.Transaction;
-import redis.clients.jedis.Response;
-import redis.clients.jedis.Tuple;
-import redis.clients.jedis.BitOP;
-import redis.clients.jedis.BinaryClient.LIST_POSITION;
 import redis.clients.jedis.exceptions.JedisDataException;
 
-import org.rarefiedredis.redis.IRedisClient;
-import org.rarefiedredis.redis.AbstractRedisClient;
-import org.rarefiedredis.redis.NotImplementedException;
-import org.rarefiedredis.redis.ExecWithoutMultiException;
-import org.rarefiedredis.redis.ArgException;
-import org.rarefiedredis.redis.WrongTypeException;
-import org.rarefiedredis.redis.IRedisSortedSet.ZsetPair;
-
-import java.util.List;
-import java.util.ArrayList;
-import java.util.Map;
-import java.util.HashMap;
-import java.util.Set;
-import java.util.HashSet;
-
 import java.lang.reflect.InvocationTargetException;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public final class JedisIRedisClientMulti extends AbstractJedisIRedisClient {
 

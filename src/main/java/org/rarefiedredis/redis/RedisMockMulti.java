@@ -1,11 +1,16 @@
 package org.rarefiedredis.redis;
 
-import java.util.List;
-import java.util.ArrayList;
-import java.util.Set;
-import java.util.Map;
+import org.rarefiedredis.redis.exception.ArgException;
+import org.rarefiedredis.redis.exception.NotFloatHashException;
+import org.rarefiedredis.redis.exception.NotImplementedException;
+import org.rarefiedredis.redis.exception.NotIntegerHashException;
+import org.rarefiedredis.redis.exception.WrongTypeException;
 
 import java.lang.reflect.Method;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 public final class RedisMockMulti extends AbstractRedisMock {
 

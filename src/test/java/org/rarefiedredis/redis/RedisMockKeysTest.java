@@ -1,7 +1,10 @@
 package org.rarefiedredis.redis;
 
-import org.junit.Test;
 import org.junit.Ignore;
+import org.junit.Test;
+import org.rarefiedredis.redis.exception.SyntaxErrorException;
+import org.rarefiedredis.redis.exception.WrongTypeException;
+
 import static org.junit.Assert.assertEquals;
 
 public class RedisMockKeysTest {

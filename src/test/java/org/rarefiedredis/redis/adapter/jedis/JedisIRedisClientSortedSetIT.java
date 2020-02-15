@@ -1,41 +1,29 @@
 package org.rarefiedredis.redis.adapter.jedis;
 
-import org.junit.Test;
 import org.junit.Before;
 import org.junit.Ignore;
-import static org.junit.Assert.assertEquals;
-
-import java.util.Map;
-import java.util.HashMap;
-import java.util.Set;
-import java.util.HashSet;
-import java.util.TreeSet;
-import java.util.List;
-import java.util.Iterator;
-
+import org.junit.Test;
+import org.rarefiedredis.redis.IRedisClient;
+import org.rarefiedredis.redis.IRedisSortedSet.ZsetPair;
+import org.rarefiedredis.redis.RandomKey;
+import org.rarefiedredis.redis.ScanResult;
+import org.rarefiedredis.redis.exception.NotFloatException;
+import org.rarefiedredis.redis.exception.NotFloatMinMaxException;
+import org.rarefiedredis.redis.exception.NotImplementedException;
+import org.rarefiedredis.redis.exception.NotIntegerException;
+import org.rarefiedredis.redis.exception.NotValidStringRangeItemException;
+import org.rarefiedredis.redis.exception.SyntaxErrorException;
+import org.rarefiedredis.redis.exception.WrongTypeException;
 import redis.clients.jedis.JedisPool;
 import redis.clients.jedis.JedisPoolConfig;
 
-import org.rarefiedredis.redis.IRedisClient;
-import org.rarefiedredis.redis.RandomKey;
-import org.rarefiedredis.redis.AbstractRedisClient;
-import org.rarefiedredis.redis.ScanResult;
-import org.rarefiedredis.redis.IRedisSortedSet.ZsetPair;
-import org.rarefiedredis.redis.ArgException;
-import org.rarefiedredis.redis.NoKeyException;
-import org.rarefiedredis.redis.BitArgException;
-import org.rarefiedredis.redis.NotFloatException;
-import org.rarefiedredis.redis.WrongTypeException;
-import org.rarefiedredis.redis.NotIntegerException;
-import org.rarefiedredis.redis.SyntaxErrorException;
-import org.rarefiedredis.redis.NotFloatHashException;
-import org.rarefiedredis.redis.NotIntegerHashException;
-import org.rarefiedredis.redis.NotImplementedException;
-import org.rarefiedredis.redis.NotFloatMinMaxException;
-import org.rarefiedredis.redis.IndexOutOfRangeException;
-import org.rarefiedredis.redis.ExecWithoutMultiException;
-import org.rarefiedredis.redis.DiscardWithoutMultiException;
-import org.rarefiedredis.redis.NotValidStringRangeItemException;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
+import java.util.Set;
+import java.util.TreeSet;
+
+import static org.junit.Assert.assertEquals;
 
 public class JedisIRedisClientSortedSetIT {
 

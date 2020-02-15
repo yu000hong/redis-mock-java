@@ -1,47 +1,49 @@
 package org.rarefiedredis.redis;
 
+import org.rarefiedredis.redis.exception.NotImplementedException;
+
 public interface IRedisKeys {
 
-    public Long del(String ... keys) throws NotImplementedException;
+    Long del(String... keys) throws NotImplementedException;
 
-    public String dump(String key) throws NotImplementedException;
+    String dump(String key) throws NotImplementedException;
 
-    public Boolean exists(String key) throws NotImplementedException;
+    Boolean exists(String key) throws NotImplementedException;
 
-    public Boolean expire(String key, int seconds) throws NotImplementedException;
+    Boolean expire(String key, int seconds) throws NotImplementedException;
 
-    public Boolean expireat(String key, long timestamp) throws NotImplementedException;
+    Boolean expireat(String key, long timestamp) throws NotImplementedException;
 
-    public String[] keys(String pattern) throws NotImplementedException;
+    String[] keys(String pattern) throws NotImplementedException;
 
-    public String migrate(String host, int port, String key, String destination_db, int timeout, String ... options) throws NotImplementedException;
+    String migrate(String host, int port, String key, String destination_db, int timeout, String... options) throws NotImplementedException;
 
-    public Long move(String key, int db) throws NotImplementedException;
+    Long move(String key, int db) throws NotImplementedException;
 
-    public Object object(String subcommand, String ... arguments) throws NotImplementedException;
+    Object object(String subcommand, String... arguments) throws NotImplementedException;
 
-    public Boolean persist(String key) throws NotImplementedException;
+    Boolean persist(String key) throws NotImplementedException;
 
-    public Boolean pexpire(String key, long milliseconds) throws NotImplementedException;
+    Boolean pexpire(String key, long milliseconds) throws NotImplementedException;
 
-    public Boolean pexpireat(String key, long timestamp) throws NotImplementedException;
+    Boolean pexpireat(String key, long timestamp) throws NotImplementedException;
 
-    public Long pttl(String key) throws NotImplementedException;
+    Long pttl(String key) throws NotImplementedException;
 
-    public String randomkey() throws NotImplementedException;
+    String randomkey() throws NotImplementedException;
 
-    public String rename(String key, String newkey) throws NotImplementedException;
+    String rename(String key, String newKey) throws NotImplementedException;
 
-    public Boolean renamenx(String key, String newkey) throws NotImplementedException;
+    Boolean renamenx(String key, String newKey) throws NotImplementedException;
 
-    public String restore(String key, int ttl, String serialized_value) throws NotImplementedException;
+    String restore(String key, int ttl, String serialized_value) throws NotImplementedException;
 
-    public String[] sort(String key, String ... options) throws NotImplementedException;
+    String[] sort(String key, String... options) throws NotImplementedException;
 
-    public Long ttl(String key) throws NotImplementedException;
+    Long ttl(String key) throws NotImplementedException;
 
-    public String type(String key) throws NotImplementedException;
+    String type(String key) throws NotImplementedException;
 
-    public String[] scan(int cursor) throws NotImplementedException;
-    
+    String[] scan(int cursor) throws NotImplementedException;
+
 }

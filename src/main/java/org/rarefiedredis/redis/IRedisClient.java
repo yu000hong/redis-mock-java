@@ -7,6 +7,7 @@ public interface IRedisClient extends IRedisKeys, IRedisString, IRedisList, IRed
      * @return A client
      */
     IRedisClient createClient();
+
     /**
      * Close this client.
      */

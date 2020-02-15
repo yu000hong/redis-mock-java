@@ -1,22 +1,20 @@
 package org.rarefiedredis.redis.adapter.jedis;
 
-import org.junit.Test;
 import org.junit.Before;
-import org.junit.Ignore;
-import static org.junit.Assert.assertEquals;
-
+import org.junit.Test;
+import org.rarefiedredis.redis.IRedisClient;
+import org.rarefiedredis.redis.RandomKey;
+import org.rarefiedredis.redis.exception.IndexOutOfRangeException;
+import org.rarefiedredis.redis.exception.NoKeyException;
+import org.rarefiedredis.redis.exception.NotImplementedException;
+import org.rarefiedredis.redis.exception.SyntaxErrorException;
+import org.rarefiedredis.redis.exception.WrongTypeException;
 import redis.clients.jedis.JedisPool;
 import redis.clients.jedis.JedisPoolConfig;
 
-import org.rarefiedredis.redis.IRedisClient;
-import org.rarefiedredis.redis.RandomKey;
-import org.rarefiedredis.redis.NoKeyException;
-import org.rarefiedredis.redis.WrongTypeException;
-import org.rarefiedredis.redis.SyntaxErrorException;
-import org.rarefiedredis.redis.IndexOutOfRangeException;
-import org.rarefiedredis.redis.NotImplementedException;
-
 import java.util.List;
+
+import static org.junit.Assert.assertEquals;
 
 public class JedisIRedisClientListIT {
 

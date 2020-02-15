@@ -1,7 +1,10 @@
 package org.rarefiedredis.redis;
 
-import java.util.Set;
+import org.rarefiedredis.redis.exception.NotImplementedException;
+import org.rarefiedredis.redis.exception.WrongTypeException;
+
 import java.util.List;
+import java.util.Set;
 
 public interface IRedisSet {
 

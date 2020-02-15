@@ -1,11 +1,13 @@
 package org.rarefiedredis.redis;
 
-import org.junit.Test;
 import org.junit.Ignore;
-import static org.junit.Assert.assertEquals;
+import org.junit.Test;
+import org.rarefiedredis.redis.exception.DiscardWithoutMultiException;
 
-import java.util.List;
 import java.util.ArrayList;
+import java.util.List;
+
+import static org.junit.Assert.assertEquals;
 
 public class RedisMockTransactionTest {
 
