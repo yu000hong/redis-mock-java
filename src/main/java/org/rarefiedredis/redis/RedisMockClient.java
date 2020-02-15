@@ -25,45 +25,55 @@ public final class RedisMockClient extends AbstractRedisMock {
         this.redisMock = redisMock;
     }
 
-    @Override public IRedisClient createClient() {
+    @Override
+    public IRedisClient createClient() {
         return new RedisMockClient(redisMock);
     }
 
-    @Override public boolean modified(Integer hashCode, String command, List<Object> args) {
+    @Override
+    public boolean modified(Integer hashCode, String command, List<Object> args) {
         return redisMock.modified(hashCode, command, args);
     }
 
     /* IRedisKeys implementations */
 
-    @Override public Long del(final String ... keys) {
+    @Override
+    public Long del(final String... keys) {
         return redisMock.del(keys);
     }
 
-    @Override public Boolean exists(final String key) {
+    @Override
+    public Boolean exists(final String key) {
         return redisMock.exists(key);
     }
 
-    @Override public Boolean expire(final String key, final int seconds) {
+    @Override
+    public Boolean expire(final String key, final int seconds) {
         return redisMock.expire(key, seconds);
     }
 
-    @Override public Boolean expireat(final String key, final long timestamp) {
+    @Override
+    public Boolean expireat(final String key, final long timestamp) {
         return redisMock.expireat(key, timestamp);
     }
 
-    @Override public Boolean persist(final String key) {
+    @Override
+    public Boolean persist(final String key) {
         return redisMock.persist(key);
     }
 
-    @Override public Boolean pexpire(final String key, final long milliseconds) {
+    @Override
+    public Boolean pexpire(final String key, final long milliseconds) {
         return redisMock.pexpire(key, milliseconds);
     }
 
-    @Override public Boolean pexpireat(final String key, final long timestamp) {
+    @Override
+    public Boolean pexpireat(final String key, final long timestamp) {
         return redisMock.pexpireat(key, timestamp);
     }
 
-    @Override public String type(final String key) {
+    @Override
+    public String type(final String key) {
         return redisMock.type(key);
     }
 
