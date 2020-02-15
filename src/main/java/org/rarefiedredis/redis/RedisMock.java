@@ -1271,7 +1271,7 @@ public final class RedisMock extends AbstractRedisMock {
     }
 
     @Override
-    public synchronized Set<String> hkeys(String key) throws WrongTypeException {
+    public synchronized Set<String> hkeys(String key) {
         checkType(key, "hash");
         if (!exists(key)) {
             return new HashSet<>();
@@ -1306,19 +1306,19 @@ public final class RedisMock extends AbstractRedisMock {
     }
 
     @Override
-    public synchronized String hmset(String key, String field, String value, String... fieldsvalues) {
+    public synchronized void hmset(String key, String field, String value, String... fieldAndValues) {
         checkType(key, "hash");
-        if (fieldsvalues.length % 2 != 0) {
+        if (fieldAndValues.length % 2 != 0) {
             throw new ArgException("HMSET");
         }
-        hset(key, field, value);
-        for (int idx = 0; idx < fieldsvalues.length; ++idx) {
+        hashCache.set(key, field, value);
+        for (int idx = 0; idx < fieldAndValues.length; ++idx) {
             if (idx % 2 != 0) {
                 continue;
             }
-            hset(key, fieldsvalues[idx], fieldsvalues[idx + 1]);
+            hashCache.set(key, fieldAndValues[idx], fieldAndValues[idx + 1]);
         }
-        return "OK";
+        keyModified(key);
     }
 
     @Override
@@ -1365,17 +1365,9 @@ public final class RedisMock extends AbstractRedisMock {
     @Override
     public synchronized ScanResult<Map<String, String>> hscan(String key, long cursor, String... options) {
         checkType(key, "hash");
-        Long count = null;
-        Pattern match = null;
-        for (int idx = 0; idx < options.length; ++idx) {
-            if (options[idx].equals("count")) {
-                count = Long.valueOf(options[idx + 1]);
-            } else if (options[idx].equals("match")) {
-                match = Pattern.compile(GlobToRegEx.convertGlobToRegEx(options[idx + 1]));
-            }
-        }
-        if (count == null) {
-            count = 10L;
+        MatchAndCount matchAndCount = MatchAndCount.parse(options);
+        if (matchAndCount.count == null) {
+            matchAndCount.count = 10L;
         }
         Map<String, String> scanned = new HashMap<>();
         Map<String, String> all = hgetall(key);
@@ -1383,10 +1375,10 @@ public final class RedisMock extends AbstractRedisMock {
         for (String k : all.keySet()) {
             idx += 1;
             if (idx > cursor) {
-                if (match == null || match.matcher(k).matches()) {
+                if (matchAndCount.match == null || matchAndCount.match.matcher(k).matches()) {
                     scanned.put(k, all.get(k));
                 }
-                if ((long) scanned.size() >= count) {
+                if ((long) scanned.size() >= matchAndCount.count) {
                     break;
                 }
             }
@@ -2087,5 +2079,22 @@ public final class RedisMock extends AbstractRedisMock {
     }
 
     //endregion
+
+    private static class MatchAndCount {
+        private Pattern match;
+        private Long count;
+
+        static MatchAndCount parse(String... options) {
+            MatchAndCount result = new MatchAndCount();
+            for (int idx = 0; idx < options.length; ++idx) {
+                if (options[idx].equals("count")) {
+                    result.count = Long.valueOf(options[idx + 1]);
+                } else if (options[idx].equals("match")) {
+                    result.match = Pattern.compile(GlobToRegEx.convertGlobToRegEx(options[idx + 1]));
+                }
+            }
+            return result;
+        }
+    }
 
 }
