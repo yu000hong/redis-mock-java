@@ -251,7 +251,7 @@ public abstract class AbstractRedisClient implements IRedisClient {
     }
 
     @Override
-    public Long linsert(String key, String before_after, String pivot, String value) {
+    public Long linsert(String key, String beforeOrAfter, String pivot, String value) {
         throw new NotImplementedException();
     }
 
@@ -276,7 +276,7 @@ public abstract class AbstractRedisClient implements IRedisClient {
     }
 
     @Override
-    public List<String> lrange(String key, long start, long end) {
+    public List<String> lrange(String key, long start, long stop) {
         throw new NotImplementedException();
     }
 
@@ -291,7 +291,7 @@ public abstract class AbstractRedisClient implements IRedisClient {
     }
 
     @Override
-    public String ltrim(String key, long start, long end) {
+    public String ltrim(String key, long start, long stop) {
         throw new NotImplementedException();
     }
 

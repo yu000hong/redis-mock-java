@@ -409,12 +409,12 @@ public abstract class AbstractJedisIRedisClient extends AbstractRedisClient {
     }
 
     @Override
-    public Long linsert(final String key, final String before_after, final String pivot, final String value) throws WrongTypeException {
+    public Long linsert(final String key, final String beforeOrAfter, final String pivot, final String value) throws WrongTypeException {
         LIST_POSITION lpos = null;
-        if (before_after.toLowerCase().equals("before")) {
+        if (beforeOrAfter.toLowerCase().equals("before")) {
             lpos = LIST_POSITION.BEFORE;
         }
-        if (before_after.toLowerCase().equals("after")) {
+        if (beforeOrAfter.toLowerCase().equals("after")) {
             lpos = LIST_POSITION.AFTER;
         }
         Object ret = command("linsert", key, lpos, pivot, value);
@@ -466,8 +466,8 @@ public abstract class AbstractJedisIRedisClient extends AbstractRedisClient {
     }
 
     @Override
-    public List<String> lrange(final String key, final long start, final long end) throws WrongTypeException {
-        Object ret = command("lrange", key, start, end);
+    public List<String> lrange(final String key, final long start, final long stop) throws WrongTypeException {
+        Object ret = command("lrange", key, start, stop);
         if (ret instanceof WrongTypeException) {
             throw (WrongTypeException) ret;
         }
@@ -499,8 +499,8 @@ public abstract class AbstractJedisIRedisClient extends AbstractRedisClient {
     }
 
     @Override
-    public String ltrim(final String key, final long start, final long end) throws WrongTypeException {
-        Object ret = command("ltrim", key, start, end);
+    public String ltrim(final String key, final long start, final long stop) {
+        Object ret = command("ltrim", key, start, stop);
         if (ret instanceof WrongTypeException) {
             throw (WrongTypeException) ret;
         }

@@ -281,8 +281,8 @@ public final class RedisMockMulti extends AbstractRedisMock {
     }
 
     @Override
-    public Long linsert(final String key, String before_after, final String pivot, final String value) {
-        return (Long) command("linsert", key, before_after, pivot, value);
+    public Long linsert(final String key, String beforeOrAfter, final String pivot, final String value) {
+        return (Long) command("linsert", key, beforeOrAfter, pivot, value);
     }
 
     @Override
@@ -306,8 +306,8 @@ public final class RedisMockMulti extends AbstractRedisMock {
     }
 
     @Override
-    public List<String> lrange(final String key, long start, long end) {
-        return (List<String>) command("lrange", key, start, end);
+    public List<String> lrange(final String key, long start, long stop) {
+        return (List<String>) command("lrange", key, start, stop);
     }
 
     @Override
@@ -321,8 +321,8 @@ public final class RedisMockMulti extends AbstractRedisMock {
     }
 
     @Override
-    public String ltrim(final String key, long start, long end) {
-        return (String) command("ltrim", key, start, end);
+    public String ltrim(final String key, long start, long stop) {
+        return (String) command("ltrim", key, start, stop);
     }
 
     @Override

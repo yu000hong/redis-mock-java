@@ -716,7 +716,7 @@ public final class RedisMock extends AbstractRedisMock {
     //region IRedisList implementations
 
     @Override
-    public synchronized String lindex(final String key, long index) throws WrongTypeException {
+    public synchronized String lindex(final String key, long index) {
         if (!exists(key)) {
             return null;
         }
@@ -732,18 +732,18 @@ public final class RedisMock extends AbstractRedisMock {
     }
 
     @Override
-    public synchronized Long linsert(final String key, String before_after, final String pivot, final String value) throws WrongTypeException {
+    public synchronized Long linsert(final String key, String beforeOrAfter, final String pivot, final String value) {
         if (!exists(key)) {
             return 0L;
         }
         checkType(key, "list");
         int index = listCache.get(key).indexOf(pivot);
-        before_after = before_after.toLowerCase();
+        beforeOrAfter = beforeOrAfter.toLowerCase();
         if (index != -1) {
-            if (before_after.equals("before")) {
+            if (beforeOrAfter.equals("before")) {
                 listCache.set(key, value, index);
                 keyModified(key);
-            } else if (before_after.equals("after")) {
+            } else if (beforeOrAfter.equals("after")) {
                 listCache.set(key, value, index + 1);
                 keyModified(key);
             }
@@ -763,6 +763,7 @@ public final class RedisMock extends AbstractRedisMock {
         int size = lst.size();
         len += (long) size;
         if (size == Integer.MAX_VALUE) {
+            //TODO why??
             // Hm, we may have _more_ elements, so count the rest.
             for (String elem : lst) {
                 len += 1;
@@ -790,7 +791,7 @@ public final class RedisMock extends AbstractRedisMock {
     }
 
     @Override
-    public synchronized Long lpush(final String key, final String element, final String... elements) throws WrongTypeException {
+    public synchronized Long lpush(final String key, final String element, final String... elements) {
         checkType(key, "list");
         listCache.set(key, element, 0);
         for (String elem : elements) {
@@ -801,7 +802,7 @@ public final class RedisMock extends AbstractRedisMock {
     }
 
     @Override
-    public synchronized Long lpushx(final String key, final String element) throws WrongTypeException {
+    public synchronized Long lpushx(final String key, final String element) {
         if (!exists(key)) {
             return 0L;
         }
@@ -810,36 +811,36 @@ public final class RedisMock extends AbstractRedisMock {
     }
 
     @Override
-    public synchronized List<String> lrange(final String key, long start, long end) throws WrongTypeException {
+    public synchronized List<String> lrange(final String key, long start, long stop) {
         if (!exists(key)) {
             return new ArrayList<>();
         }
         checkType(key, "list");
-        List<String> lst = listCache.get(key);
-        int len = lst.size();
+        List<String> list = listCache.get(key);
+        int len = list.size();
         if (start < 0) {
             start = len + start;
         }
-        if (end < 0) {
-            end = len + end;
+        if (stop < 0) {
+            stop = len + stop;
         }
-        if (start > end) {
+        if (start > stop) {
             return new ArrayList<>();
         }
-        if (start > lst.size() - 1) {
+        if (start > list.size() - 1) {
             return new ArrayList<>();
         }
-        if (end > len - 1) {
-            end = len - 1;
+        if (stop > len - 1) {
+            stop = len - 1;
         }
-        if (start < 0 || end < 0) {
+        if (start < 0 || stop < 0) {
             return new ArrayList<>();
         }
-        return lst.subList((int) start, (int) (end + 1L));
+        return list.subList((int) start, (int) (stop + 1L));
     }
 
     @Override
-    public synchronized Long lrem(final String key, final long count, final String element) throws WrongTypeException {
+    public synchronized Long lrem(final String key, final long count, final String element) {
         if (!exists(key)) {
             return 0L;
         }
@@ -861,7 +862,7 @@ public final class RedisMock extends AbstractRedisMock {
     }
 
     @Override
-    public synchronized String lset(final String key, final long index, final String element) throws WrongTypeException, NoKeyException, IndexOutOfRangeException {
+    public synchronized String lset(final String key, final long index, final String element) {
         if (!exists(key)) {
             throw new NoKeyException();
         }
@@ -875,41 +876,39 @@ public final class RedisMock extends AbstractRedisMock {
     }
 
     @Override
-    public synchronized String ltrim(final String key, long start, long end) throws WrongTypeException {
+    public synchronized String ltrim(final String key, long start, long stop) {
         if (!exists(key)) {
             return "OK";
         }
         checkType(key, "list");
         int len = listCache.get(key).size();
-        if (start > len || start > end) {
+        if (start > len || start > stop) {
             del(key);
             return "OK";
         }
         if (start < 0) {
             start = len + start;
         }
-        if (end < 0) {
-            end = len + start;
+        if (stop < 0) {
+            stop = len + start;
         }
-        if (end > len - 1) {
-            end = len - 1;
+        if (stop > len - 1) {
+            stop = len - 1;
         }
-        if (start < 0 || end < 0) {
+        if (start < 0 || stop < 0) {
             return "OK";
         }
-        List<String> subl = listCache.get(key).subList((int) start, (int) (end + 1L));
+        List<String> subList = listCache.get(key).subList((int) start, (int) (stop + 1L));
         // Avoid a ConcurrentModificationException on the subList view by copying it into a new list.
-        List<String> trimmed = new LinkedList<String>();
-        for (String sub : subl) {
-            trimmed.add(sub);
-        }
+        List<String> trimmed = new LinkedList<>();
+        trimmed.addAll(subList);
         listCache.get(key).retainAll(trimmed);
         keyModified(key);
         return "OK";
     }
 
     @Override
-    public synchronized String rpop(final String key) throws WrongTypeException {
+    public synchronized String rpop(final String key) {
         if (!exists(key)) {
             return null;
         }
@@ -927,7 +926,7 @@ public final class RedisMock extends AbstractRedisMock {
     }
 
     @Override
-    public synchronized String rpoplpush(final String source, final String dest) throws WrongTypeException {
+    public synchronized String rpoplpush(final String source, final String dest) {
         if (!exists(source)) {
             return null;
         }
@@ -939,7 +938,7 @@ public final class RedisMock extends AbstractRedisMock {
     }
 
     @Override
-    public synchronized Long rpush(final String key, final String element, final String... elements) throws WrongTypeException {
+    public synchronized Long rpush(final String key, final String element, final String... elements) {
         checkType(key, "list");
         listCache.set(key, element);
         for (String elem : elements) {
@@ -950,7 +949,7 @@ public final class RedisMock extends AbstractRedisMock {
     }
 
     @Override
-    public synchronized Long rpushx(final String key, final String element) throws WrongTypeException {
+    public synchronized Long rpushx(final String key, final String element) {
         if (!exists(key)) {
             return 0L;
         }

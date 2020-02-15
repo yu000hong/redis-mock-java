@@ -206,8 +206,8 @@ public final class RedisMockClient extends AbstractRedisMock {
     }
 
     @Override
-    public Long linsert(final String key, String before_after, final String pivot, final String value) throws WrongTypeException {
-        return redisMock.linsert(key, before_after, pivot, value);
+    public Long linsert(final String key, String beforeOrAfter, final String pivot, final String value) throws WrongTypeException {
+        return redisMock.linsert(key, beforeOrAfter, pivot, value);
     }
 
     @Override
@@ -231,8 +231,8 @@ public final class RedisMockClient extends AbstractRedisMock {
     }
 
     @Override
-    public List<String> lrange(final String key, long start, long end) throws WrongTypeException {
-        return redisMock.lrange(key, start, end);
+    public List<String> lrange(final String key, long start, long stop) throws WrongTypeException {
+        return redisMock.lrange(key, start, stop);
     }
 
     @Override
@@ -246,8 +246,8 @@ public final class RedisMockClient extends AbstractRedisMock {
     }
 
     @Override
-    public String ltrim(final String key, long start, long end) throws WrongTypeException {
-        return redisMock.ltrim(key, start, end);
+    public String ltrim(final String key, long start, long stop) throws WrongTypeException {
+        return redisMock.ltrim(key, start, stop);
     }
 
     @Override
