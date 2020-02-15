@@ -3,7 +3,7 @@ package org.rarefiedredis.redis.exception;
 /**
  * Thrown when certain zset commands encounter bad inputs.
  */
-public final class NotValidStringRangeItemException extends Exception {
+public final class NotValidStringRangeItemException extends RuntimeException {
     /**
      * Constructor. Makes the exception with 'ERR min or max not valid string range item'
      * as the message.
