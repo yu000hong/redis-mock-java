@@ -1243,6 +1243,7 @@ public final class RedisMock extends AbstractRedisMock {
             hset(key, field, String.valueOf(increment));
         } else {
             try {
+                @SuppressWarnings("ConstantConditions")
                 Long no = Long.valueOf(hget(key, field));
                 hset(key, field, String.valueOf(no + increment));
             } catch (NumberFormatException nfe) {
@@ -1250,6 +1251,7 @@ public final class RedisMock extends AbstractRedisMock {
             }
         }
         keyModified(key);
+        //noinspection ConstantConditions
         return Long.valueOf(hget(key, field));
     }
 
@@ -1260,6 +1262,7 @@ public final class RedisMock extends AbstractRedisMock {
             hset(key, field, String.valueOf(increment));
         } else {
             try {
+                @SuppressWarnings("ConstantConditions")
                 Double no = Double.parseDouble(hget(key, field));
                 hset(key, field, String.valueOf(no + increment));
             } catch (NumberFormatException nfe) {
