@@ -1,23 +1,16 @@
 package org.rarefiedredis.redis;
 
-import org.rarefiedredis.redis.exception.NotFloatException;
-import org.rarefiedredis.redis.exception.NotFloatMinMaxException;
-import org.rarefiedredis.redis.exception.NotImplementedException;
-import org.rarefiedredis.redis.exception.NotIntegerException;
-import org.rarefiedredis.redis.exception.NotValidStringRangeItemException;
-import org.rarefiedredis.redis.exception.SyntaxErrorException;
-import org.rarefiedredis.redis.exception.WrongTypeException;
-
 import java.util.Comparator;
 import java.util.HashMap;
-import java.util.HashSet;
+import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 public interface IRedisSortedSet {
 
-    public final class ZsetPair {
-
+    final class ZsetPair {
         public String member;
         public Double score;
 
@@ -41,12 +34,24 @@ public interface IRedisSortedSet {
             this.score = score;
         }
 
-        public static Set<String> members(Set<ZsetPair> pairs) {
-            Set<String> set = new HashSet<String>();
-            for (ZsetPair pair : pairs) {
-                set.add(pair.member);
+        @Override
+        public int hashCode() {
+            return Objects.hash(member);
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (o == null || !(o instanceof ZsetPair)) {
+                return false;
             }
-            return set;
+            ZsetPair other = (ZsetPair) o;
+            return member.equals(other.member);
+        }
+
+        public static Set<String> members(Set<ZsetPair> pairs) {
+            return pairs.stream()
+                .map(pair -> pair.member)
+                .collect(Collectors.toSet());
         }
 
         public static Map<String, Double> asMap(Set<ZsetPair> pairs) {
@@ -58,100 +63,98 @@ public interface IRedisSortedSet {
         }
 
         public static Comparator<ZsetPair> comparator() {
-            return new Comparator<ZsetPair>() {
-                @Override public int compare(ZsetPair a, ZsetPair b) {
-                    if (a == null) {
-                        if (b == null) {
-                            return 0;
-                        }
-                        return 1;
-                    }
+            return (a, b) -> {
+                if (a == null) {
                     if (b == null) {
+                        return 0;
+                    }
+                    return 1;
+                }
+                if (b == null) {
+                    return -1;
+                }
+                if (a.score != null && b.score != null) {
+                    if (a.score < b.score) {
                         return -1;
                     }
-                    if (a.score != null && b.score != null) {
-                        if (a.score < b.score) {
-                            return -1;
-                        }
-                        if (a.score > b.score) {
-                            return 1;
-                        }
+                    if (a.score > b.score) {
+                        return 1;
                     }
-                    return a.member.compareTo(b.member);
                 }
+                return a.member.compareTo(b.member);
             };
         }
 
         public static Comparator<ZsetPair> descendingComparator() {
-            return new Comparator<ZsetPair>() {
-                @Override public int compare(ZsetPair a, ZsetPair b) {
-                    if (a == null) {
-                        if (b == null) {
-                            return 0;
-                        }
+            return (a, b) -> {
+                if (a == null) {
+                    if (b == null) {
+                        return 0;
+                    }
+                    return 1;
+                }
+                if (b == null) {
+                    return -1;
+                }
+                if (a.score != null && b.score != null) {
+                    if (a.score < b.score) {
                         return 1;
                     }
-                    if (b == null) {
+                    if (a.score > b.score) {
                         return -1;
                     }
-                    if (a.score != null && b.score != null) {
-                        if (a.score < b.score) {
-                            return 1;
-                        }
-                        if (a.score > b.score) {
-                            return -1;
-                        }
-                    }
-                    return b.member.compareTo(a.member);
                 }
+                return b.member.compareTo(a.member);
             };
         }
     }
 
-    Long zadd(String key, ZsetPair scoremember, ZsetPair ... scoresmembers) throws WrongTypeException, NotImplementedException;
+    Long zadd(String key, ZsetPair pair, ZsetPair... pairs);
 
-    Long zadd(String key, double score, String member, Object ... scoresmembers) throws WrongTypeException, NotImplementedException, SyntaxErrorException, NotFloatException;
+    Long zadd(String key, double score, String member, Object... scoreAndMembers);
 
-    Long zcard(String key) throws WrongTypeException, NotImplementedException;
+    Long zcard(String key);
 
-    Long zcount(String key, double min, double max) throws WrongTypeException, NotImplementedException;
+    Long zcount(String key, double min, double max);
 
-    String zincrby(String key, double increment, String member) throws WrongTypeException, NotImplementedException;
+    String zincrby(String key, double increment, String member);
 
-    Long zinterstore(String destination, int numkeys, String ... options) throws WrongTypeException, SyntaxErrorException, NotImplementedException;
+    Long zinterstore(String destination, int numkeys, String... options);
 
-    //Long zinterstore(String destination, int numkeys, Object ... options) throws WrongTypeException, SyntaxErrorException, NotImplementedException;
+    Long zlexcount(String key, String min, String max);
 
-    Long zlexcount(String key, String min, String max) throws WrongTypeException, NotValidStringRangeItemException, NotImplementedException;
+    List<ZsetPair> zpopmax(String key, long count);
 
-    Set<ZsetPair> zrange(String key, long start, long stop, String ... options) throws WrongTypeException, NotImplementedException;
+    List<ZsetPair> zpopmin(String key, long count);
 
-    Set<ZsetPair> zrangebylex(String key, String min, String max, String ... options) throws WrongTypeException, NotValidStringRangeItemException, NotImplementedException;
+    List<ZsetPair> zrange(String key, long start, long stop, String... options);
 
-    Set<ZsetPair> zrevrangebylex(String key, String max, String min, String ... options) throws WrongTypeException, NotValidStringRangeItemException, NotImplementedException;
+    List<ZsetPair> zrangebylex(String key, String min, String max, String... options);
 
-    Set<ZsetPair> zrangebyscore(String key, String min, String max, String ... options) throws WrongTypeException, NotFloatMinMaxException, NotIntegerException, SyntaxErrorException, NotImplementedException;
+    List<ZsetPair> zrevrangebylex(String key, String max, String min, String... options);
 
-    Long zrank(String key, String member) throws WrongTypeException, NotImplementedException;
+    List<ZsetPair> zrangebyscore(String key, String min, String max, String... options);
 
-    Long zrem(String key, String member, String ... members) throws WrongTypeException, NotImplementedException;
+    Long zrank(String key, String member);
 
-    Long zremrangebylex(String key, String min, String max) throws WrongTypeException, NotValidStringRangeItemException, NotImplementedException;
+    Long zrem(String key, String member, String... members);
 
-    Long zremrangebyrank(String key, long start, long stop) throws WrongTypeException, NotImplementedException;
+    Long zremrangebylex(String key, String min, String max);
 
-    Long zremrangebyscore(String key, String min, String max) throws WrongTypeException, NotFloatMinMaxException, NotImplementedException;
+    Long zremrangebyrank(String key, long start, long stop);
 
-    Set<ZsetPair> zrevrange(String key, long start, long stop, String ... options) throws WrongTypeException, NotImplementedException;
+    Long zremrangebyscore(String key, String min, String max);
 
-    Set<ZsetPair> zrevrangebyscore(String key, String max, String min, String ... options) throws WrongTypeException, NotFloatMinMaxException, NotIntegerException, SyntaxErrorException, NotImplementedException;
+    List<ZsetPair> zrevrange(String key, long start, long stop, String... options);
 
-    Long zrevrank(String key, String member) throws WrongTypeException, NotImplementedException;
+    List<ZsetPair> zrevrangebyscore(String key, String max, String min, String... options);
 
-    Double zscore(String key, String member) throws WrongTypeException, NotImplementedException;
+    Long zrevrank(String key, String member);
 
-    Long zunionstore(String destination, int numkeys, String ... options) throws WrongTypeException, SyntaxErrorException, NotImplementedException;
+    Double zscore(String key, String member);
 
-    ScanResult<Set<ZsetPair>> zscan(String key, long cursor, String ... options) throws WrongTypeException, NotImplementedException;
+    Long zunionstore(String destination, int numkeys, String... options);
+
+    ScanResult<List<ZsetPair>> zscan(String key, long cursor, String... options);
 
 }

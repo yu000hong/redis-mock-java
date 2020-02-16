@@ -14,6 +14,16 @@ import java.util.Set;
 
 public final class RedisMockMulti extends AbstractRedisMock {
 
+    @Override
+    public List<ZsetPair> zpopmax(String key, long count) {
+        return (List<ZsetPair>) command("zpopmax", key, count);
+    }
+
+    @Override
+    public List<ZsetPair> zpopmin(String key, long count) {
+        return (List<ZsetPair>) command("zpopmin", key, count);
+    }
+
     private final class MultiCommand {
         public String command;
         public List<Object> args;

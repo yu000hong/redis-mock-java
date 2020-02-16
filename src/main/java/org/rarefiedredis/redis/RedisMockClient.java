@@ -457,6 +457,16 @@ public final class RedisMockClient extends AbstractRedisMock {
         return redisMock.watch(key, this.hashCode());
     }
 
+    @Override
+    public List<ZsetPair> zpopmax(String key, long count) {
+        return redisMock.zpopmax(key, count);
+    }
+
+    @Override
+    public List<ZsetPair> zpopmin(String key, long count) {
+        return redisMock.zpopmin(key, count);
+    }
+
     //endregion
 
 }

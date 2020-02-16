@@ -507,12 +507,12 @@ public abstract class AbstractRedisClient implements IRedisClient {
     //region IRedisSortedSet commands 
 
     @Override
-    public Long zadd(String key, ZsetPair scoremember, ZsetPair... scoresmembers) {
+    public Long zadd(String key, ZsetPair pair, ZsetPair... pairs) {
         throw new NotImplementedException();
     }
 
     @Override
-    public Long zadd(String key, double score, String member, Object... scoresmembers) {
+    public Long zadd(String key, double score, String member, Object... scoreAndMembers) {
         throw new NotImplementedException();
     }
 
@@ -542,22 +542,22 @@ public abstract class AbstractRedisClient implements IRedisClient {
     }
 
     @Override
-    public Set<ZsetPair> zrange(String key, long start, long stop, String... options) {
+    public List<ZsetPair> zrange(String key, long start, long stop, String... options) {
         throw new NotImplementedException();
     }
 
     @Override
-    public Set<ZsetPair> zrangebylex(String key, String min, String max, String... options) {
+    public List<ZsetPair> zrangebylex(String key, String min, String max, String... options) {
         throw new NotImplementedException();
     }
 
     @Override
-    public Set<ZsetPair> zrevrangebylex(String key, String max, String min, String... options) {
+    public List<ZsetPair> zrevrangebylex(String key, String max, String min, String... options) {
         throw new NotImplementedException();
     }
 
     @Override
-    public Set<ZsetPair> zrangebyscore(String key, String min, String max, String... options) {
+    public List<ZsetPair> zrangebyscore(String key, String min, String max, String... options) {
         throw new NotImplementedException();
     }
 
@@ -587,12 +587,12 @@ public abstract class AbstractRedisClient implements IRedisClient {
     }
 
     @Override
-    public Set<ZsetPair> zrevrange(String key, long start, long stop, String... options) {
+    public List<ZsetPair> zrevrange(String key, long start, long stop, String... options) {
         throw new NotImplementedException();
     }
 
     @Override
-    public Set<ZsetPair> zrevrangebyscore(String key, String max, String min, String... options) {
+    public List<ZsetPair> zrevrangebyscore(String key, String max, String min, String... options) {
         throw new NotImplementedException();
     }
 
@@ -612,7 +612,7 @@ public abstract class AbstractRedisClient implements IRedisClient {
     }
 
     @Override
-    public ScanResult<Set<ZsetPair>> zscan(String key, long cursor, String... options) {
+    public ScanResult<List<ZsetPair>> zscan(String key, long cursor, String... options) {
         throw new NotImplementedException();
     }
 

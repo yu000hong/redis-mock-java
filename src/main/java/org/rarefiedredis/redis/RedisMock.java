@@ -29,11 +29,14 @@ import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.NoSuchElementException;
 import java.util.Set;
+import java.util.SortedSet;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.TreeSet;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 /**
  * An in-memory redis-compatible key-value cache and store written
@@ -1153,16 +1156,13 @@ public final class RedisMock extends AbstractRedisMock {
     public synchronized ScanResult<Set<String>> sscan(String key, long cursor, String... options) {
         checkType(key, "set");
         MatchAndCount matchAndCount = MatchAndCount.parse(options);
-        if (matchAndCount.count == null) {
-            matchAndCount.count = 10L;
-        }
         Set<String> scanned = new HashSet<>();
         Set<String> members = smembers(key);
         Long idx = 0L;
         for (String member : members) {
             idx += 1;
             if (idx > cursor) {
-                if (matchAndCount.match == null || matchAndCount.match.matcher(member).matches()) {
+                if (matchAndCount.matches(member)) {
                     scanned.add(member);
                 }
                 if ((long) scanned.size() >= matchAndCount.count) {
@@ -1358,16 +1358,13 @@ public final class RedisMock extends AbstractRedisMock {
     public synchronized ScanResult<Map<String, String>> hscan(String key, long cursor, String... options) {
         checkType(key, "hash");
         MatchAndCount matchAndCount = MatchAndCount.parse(options);
-        if (matchAndCount.count == null) {
-            matchAndCount.count = 10L;
-        }
         Map<String, String> scanned = new HashMap<>();
         Map<String, String> all = hgetall(key);
         Long idx = 0L;
         for (String k : all.keySet()) {
             idx += 1;
             if (idx > cursor) {
-                if (matchAndCount.match == null || matchAndCount.match.matcher(k).matches()) {
+                if (matchAndCount.matches(k)) {
                     scanned.put(k, all.get(k));
                 }
                 if ((long) scanned.size() >= matchAndCount.count) {
@@ -1483,46 +1480,47 @@ public final class RedisMock extends AbstractRedisMock {
     //region IRedisSortedSet commands
 
     @Override
-    public synchronized Long zadd(final String key, final ZsetPair scoremember, final ZsetPair... scoresmembers) {
+    public synchronized Long zadd(final String key, final ZsetPair pair, final ZsetPair... pairs) {
         checkType(key, "zset");
         Long count = 0L;
-        if (!zsetCache.exists(key) || !zsetCache.get(key).contains(scoremember.member)) {
+        if (!zsetCache.exists(key) || !zsetCache.get(key).contains(pair.member)) {
             ++count;
         }
-        zsetCache.set(key, scoremember.member, scoremember.score);
-        for (ZsetPair sms : scoresmembers) {
-            if (sms == null) {
+        zsetCache.set(key, pair.member, pair.score);
+        for (ZsetPair p : pairs) {
+            if (p == null) {
                 continue;
             }
-            if (!zsetCache.get(key).contains(sms.member)) {
+            if (!zsetCache.get(key).contains(p.member)) {
                 ++count;
             }
-            zsetCache.set(key, sms.member, sms.score);
+            zsetCache.set(key, p.member, p.score);
         }
+        keyModified(key);
         return count;
     }
 
     @Override
-    public Long zadd(final String key, final double score, final String member, final Object... scoresmembers) {
-        if (scoresmembers.length % 2 != 0) {
+    public Long zadd(final String key, final double score, final String member, final Object... scoreAndMembers) {
+        if (scoreAndMembers.length % 2 != 0) {
             throw new SyntaxErrorException();
         }
         ZsetPair pair = new ZsetPair(score, member);
-        ZsetPair[] pairs = new ZsetPair[scoresmembers.length / 2];
-        for (int idx = 0, pidx = 0; idx < scoresmembers.length; ++idx) {
+        ZsetPair[] pairs = new ZsetPair[scoreAndMembers.length / 2];
+        for (int idx = 0, pidx = 0; idx < scoreAndMembers.length; ++idx) {
             if (idx % 2 != 0) {
                 continue;
             }
-            if (scoresmembers[idx] instanceof Number) {
-                scoresmembers[idx] = ((Number) scoresmembers[idx]).doubleValue();
+            if (scoreAndMembers[idx] instanceof Number) {
+                scoreAndMembers[idx] = ((Number) scoreAndMembers[idx]).doubleValue();
             }
-            if (!(scoresmembers[idx] instanceof Double)) {
+            if (!(scoreAndMembers[idx] instanceof Double)) {
                 throw new NotFloatException();
             }
-            if (!(scoresmembers[idx + 1] instanceof String)) {
-                scoresmembers[idx + 1] = scoresmembers[idx + 1].toString();
+            if (!(scoreAndMembers[idx + 1] instanceof String)) {
+                scoreAndMembers[idx + 1] = scoreAndMembers[idx + 1].toString();
             }
-            pairs[pidx] = new ZsetPair((Double) scoresmembers[idx], (String) scoresmembers[idx + 1]);
+            pairs[pidx] = new ZsetPair((Double) scoreAndMembers[idx], (String) scoreAndMembers[idx + 1]);
             ++pidx;
         }
         return zadd(key, pair, pairs);
@@ -1546,6 +1544,7 @@ public final class RedisMock extends AbstractRedisMock {
         Long count = 0L;
         for (String member : zsetCache.get(key)) {
             Double score = zsetCache.getScore(key, member);
+            //noinspection ConstantConditions
             if (min <= score && score <= max) {
                 ++count;
             }
@@ -1556,12 +1555,12 @@ public final class RedisMock extends AbstractRedisMock {
     @Override
     public synchronized String zincrby(final String key, final double increment, final String member) {
         checkType(key, "zset");
-        if (!zsetCache.existsValue(key, member)) {
-            zsetCache.set(key, member, 0.0);
+        Double newScore = increment;
+        if (zsetCache.existsValue(key, member)) {
+            newScore += zsetCache.getScore(key, member);
         }
-        Double score = zsetCache.getScore(key, member);
-        Double newScore = score + increment;
         zsetCache.set(key, member, newScore);
+        keyModified(key);
         return String.valueOf(newScore);
     }
 
@@ -1570,67 +1569,26 @@ public final class RedisMock extends AbstractRedisMock {
         if (exists(destination)) {
             del(destination);
         }
-        List<String> keys = new ArrayList<>(numkeys);
-        Map<String, Double> weights = new HashMap<>();
-        String aggregate = "sum";
-        if (options.length < numkeys) {
-            throw new SyntaxErrorException();
-        }
-        int i;
-        for (i = 0; i < numkeys; ++i) {
-            checkType(options[i], "zset");
-            keys.add(options[i]);
-        }
-        i = numkeys;
-        while (i < options.length) {
-            if (options[i] == null) {
-                continue;
-            }
-            if ("weights".equals(options[i].toLowerCase())) {
-                if (i + 1 >= options.length) {
-                    throw new SyntaxErrorException();
-                }
-                int ki = 0;
-                ++i;
-                while (i < options.length && !("aggregate".equals(options[i]))) {
-                    weights.put(keys.get(ki), Double.valueOf(options[i]));
-                    ++ki;
-                    ++i;
-                }
-            } else if ("aggregate".equals(options[i].toLowerCase())) {
-                if (i + 1 >= options.length) {
-                    throw new SyntaxErrorException();
-                }
-                aggregate = options[i + 1];
-                i += 2;
-            } else {
-                throw new SyntaxErrorException();
-            }
-        }
-        String key = keys.get(0);
-        Set<ZsetPair> range = zrange(key, 0, -1, "withscores");
+        ZsetAggregation zsetAggregation = ZsetAggregation.parse(numkeys, options);
+        zsetAggregation.keys.forEach(key -> checkType(key, "zset"));
+        String key = zsetAggregation.keys.get(0);
+        Set<ZsetPair> range = new HashSet<>(zrange(key, 0, -1, "withscores"));
         for (ZsetPair pair : range) {
-            if (weights.containsKey(key)) {
-                pair.score *= weights.get(key);
+            if (zsetAggregation.weights.containsKey(key)) {
+                pair.score *= zsetAggregation.weights.get(key);
             }
         }
-        for (String k : keys.subList(1, numkeys)) {
+        for (String k : zsetAggregation.keys.subList(1, numkeys)) {
             Set<ZsetPair> inter = new HashSet<>();
             for (ZsetPair pair : range) {
                 if (!zsetCache.existsValue(k, pair.member)) {
                     continue;
                 }
                 Double score = zsetCache.getScore(k, pair.member);
-                if (weights.containsKey(k)) {
-                    score *= weights.get(k);
+                if (zsetAggregation.weights.containsKey(k)) {
+                    score *= zsetAggregation.weights.get(k);
                 }
-                if ("min".equals(aggregate)) {
-                    pair.score = Math.min(pair.score, score);
-                } else if ("max".equals(aggregate)) {
-                    pair.score = Math.max(pair.score, score);
-                } else { // == sum
-                    pair.score += score;
-                }
+                pair.score = zsetAggregation.aggregation.aggregate(pair.score, score);
                 inter.add(pair);
             }
             range = inter;
@@ -1640,6 +1598,7 @@ public final class RedisMock extends AbstractRedisMock {
             zadd(destination, pair);
             ++count;
         }
+        keyModified(destination);
         return count;
     }
 
@@ -1648,8 +1607,41 @@ public final class RedisMock extends AbstractRedisMock {
         return (long) zrangebylex(key, min, max).size();
     }
 
+    private List<ZsetPair> zpop(String key, long count, boolean max) {
+        checkType(key, "zset");
+        List<ZsetPair> list = new ArrayList<>((int) count);
+        if (!exists(key)) {
+            return list;
+        }
+        SortedSet<String> zset = (SortedSet<String>) zsetCache.get(key);
+        for (int i = 0; i < count; i++) {
+            try {
+                String member = max ? zset.last() : zset.first();
+                Double score = zsetCache.getScore(key, member);
+                list.add(new ZsetPair(member, score));
+                zsetCache.removeValue(key, member);
+            } catch (NoSuchElementException ignored) {
+                break;
+            }
+        }
+        if (!list.isEmpty()) {
+            keyModified(key);
+        }
+        return list;
+    }
+
     @Override
-    public synchronized Set<ZsetPair> zrange(final String key, long start, long stop, final String... options) {
+    public List<ZsetPair> zpopmax(String key, long count) {
+        return zpop(key, count, true);
+    }
+
+    @Override
+    public List<ZsetPair> zpopmin(String key, long count) {
+        return zpop(key, count, true);
+    }
+
+    @Override
+    public synchronized List<ZsetPair> zrange(final String key, long start, long stop, final String... options) {
         checkType(key, "zset");
         boolean withscores = false;
         long card = zcard(key);
@@ -1659,7 +1651,7 @@ public final class RedisMock extends AbstractRedisMock {
         if (stop < 0) {
             stop = card + stop;
         }
-        Set<ZsetPair> range = new TreeSet<>(ZsetPair.comparator());
+        List<ZsetPair> range = new ArrayList<>();
         if (!zsetCache.exists(key)) {
             return range;
         }
@@ -1686,7 +1678,7 @@ public final class RedisMock extends AbstractRedisMock {
     }
 
     @Override
-    public synchronized Set<ZsetPair> zrangebylex(final String key, String min, String max, String... options) {
+    public synchronized List<ZsetPair> zrangebylex(final String key, String min, String max, String... options) {
         checkType(key, "zset");
         if (min.charAt(0) != '(' && min.charAt(0) != '[' && min.charAt(0) != '-' && min.charAt(0) != '+') {
             throw new NotValidStringRangeItemException();
@@ -1696,7 +1688,7 @@ public final class RedisMock extends AbstractRedisMock {
         }
         Set<ZsetPair> range = new TreeSet<>(ZsetPair.comparator());
         if (!zsetCache.exists(key)) {
-            return range;
+            return range.stream().collect(Collectors.toList());
         }
         String minStr = min.substring(1);
         String maxStr = max.substring(1);
@@ -1704,10 +1696,10 @@ public final class RedisMock extends AbstractRedisMock {
         boolean maxInclusive = max.charAt(0) == '[';
         boolean maxAll = max.charAt(0) == '+';
         if (min.charAt(0) == '+') {
-            return range;
+            return range.stream().collect(Collectors.toList());
         }
         if (max.charAt(0) == '-') {
-            return range;
+            return range.stream().collect(Collectors.toList());
         }
         Set<String> members = zsetCache.get(key);
         for (String member : members) {
@@ -1724,19 +1716,19 @@ public final class RedisMock extends AbstractRedisMock {
                 range.add(new ZsetPair(member));
             }
         }
-        return range;
+        return range.stream().collect(Collectors.toList());
     }
 
     @Override
-    public synchronized Set<ZsetPair> zrevrangebylex(final String key, final String max, final String min, final String... options) {
-        Set<ZsetPair> range = zrangebylex(key, min, max, options);
+    public synchronized List<ZsetPair> zrevrangebylex(final String key, final String max, final String min, final String... options) {
+        List<ZsetPair> range = zrangebylex(key, min, max, options);
         Set<ZsetPair> revrange = new TreeSet<>(ZsetPair.descendingComparator());
         revrange.addAll(range);
-        return revrange;
+        return revrange.stream().collect(Collectors.toList());
     }
 
     @Override
-    public synchronized Set<ZsetPair> zrangebyscore(final String key, String min, String max, String... options) throws WrongTypeException, NotFloatMinMaxException, NotIntegerException, SyntaxErrorException {
+    public synchronized List<ZsetPair> zrangebyscore(final String key, String min, String max, String... options) {
         Double minf = null, maxf = null;
         boolean minInclusive = true, maxInclusive = true;
         checkType(key, "zset");
@@ -1796,9 +1788,9 @@ public final class RedisMock extends AbstractRedisMock {
                 }
             }
         }
-        Set<ZsetPair> range = new TreeSet<ZsetPair>(ZsetPair.comparator());
+        Set<ZsetPair> range = new TreeSet<>(ZsetPair.comparator());
         if (!zsetCache.exists(key)) {
-            return range;
+            return range.stream().collect(Collectors.toList());
         }
         Set<String> members = zsetCache.get(key);
         long offset = 0;
@@ -1830,7 +1822,7 @@ public final class RedisMock extends AbstractRedisMock {
             }
             ++offset;
         }
-        return range;
+        return range.stream().collect(Collectors.toList());
     }
 
     @Override
@@ -1864,23 +1856,27 @@ public final class RedisMock extends AbstractRedisMock {
         if (zcard(key) == 0L) {
             del(key);
         }
+        if (count > 0) {
+            keyModified(key);
+        }
         return count;
     }
 
     @Override
-    public synchronized Long zremrangebylex(final String key, final String min, final String max) throws WrongTypeException, NotValidStringRangeItemException {
-        Set<ZsetPair> range = zrangebylex(key, min, max);
-        for (ZsetPair pair : range) {
-            zrem(key, pair.member);
+    public synchronized Long zremrangebylex(final String key, final String min, final String max) {
+        List<ZsetPair> range = zrangebylex(key, min, max);
+        if (!range.isEmpty()) {
+            range.forEach(pair -> zsetCache.removeValue(key, pair.member));
+            keyModified(key);
         }
         return (long) range.size();
     }
 
     @Override
-    public synchronized Long zremrangebyrank(final String key, long min, long max) throws WrongTypeException {
+    public synchronized Long zremrangebyrank(final String key, long min, long max) {
         checkType(key, "zset");
         Set<String> members = zsetCache.get(key);
-        Set<String> toRem = new HashSet<String>();
+        Set<String> toRem = new HashSet<>();
         long card = zcard(key);
         if (min < 0) {
             min = card + min;
@@ -1898,47 +1894,40 @@ public final class RedisMock extends AbstractRedisMock {
             }
             ++count;
         }
-        for (String rem : toRem) {
-            zrem(key, rem);
+        if (!toRem.isEmpty()) {
+            toRem.forEach(rem -> zsetCache.removeValue(key, rem));
+            keyModified(key);
         }
         return (long) toRem.size();
     }
 
     @Override
-    public synchronized Long zremrangebyscore(final String key, final String min, final String max) throws WrongTypeException, NotFloatMinMaxException {
-        try {
-            Set<ZsetPair> range = zrangebyscore(key, min, max);
-            for (ZsetPair pair : range) {
-                zrem(key, pair.member);
-            }
-            return (long) range.size();
-        } catch (WrongTypeException e) {
-            throw e;
-        } catch (NotFloatMinMaxException e) {
-            throw e;
-        } catch (Exception e) { // Should never get here.
+    public synchronized Long zremrangebyscore(final String key, final String min, final String max) {
+        List<ZsetPair> range = zrangebyscore(key, min, max);
+        for (ZsetPair pair : range) {
+            zrem(key, pair.member);
         }
-        return null;
+        return (long) range.size();
     }
 
     @Override
-    public synchronized Set<ZsetPair> zrevrange(final String key, final long start, final long stop, final String... options) throws WrongTypeException {
-        Set<ZsetPair> range = zrange(key, start, stop, options);
-        Set<ZsetPair> revRange = new TreeSet<ZsetPair>(ZsetPair.descendingComparator());
+    public synchronized List<ZsetPair> zrevrange(final String key, final long start, final long stop, final String... options) throws WrongTypeException {
+        List<ZsetPair> range = zrange(key, start, stop, options);
+        Set<ZsetPair> revRange = new TreeSet<>(ZsetPair.descendingComparator());
         revRange.addAll(range);
-        return revRange;
+        return revRange.stream().collect(Collectors.toList());
     }
 
     @Override
-    public synchronized Set<ZsetPair> zrevrangebyscore(final String key, final String max, final String min, final String... options) throws WrongTypeException, NotFloatMinMaxException, NotIntegerException, SyntaxErrorException {
-        Set<ZsetPair> range = zrangebyscore(key, min, max, options);
-        Set<ZsetPair> revRange = new TreeSet(ZsetPair.descendingComparator());
+    public synchronized List<ZsetPair> zrevrangebyscore(final String key, final String max, final String min, final String... options) {
+        List<ZsetPair> range = zrangebyscore(key, min, max, options);
+        Set<ZsetPair> revRange = new TreeSet<>(ZsetPair.descendingComparator());
         revRange.addAll(range);
-        return revRange;
+        return revRange.stream().collect(Collectors.toList());
     }
 
     @Override
-    public synchronized Long zrevrank(final String key, final String member) throws WrongTypeException {
+    public synchronized Long zrevrank(final String key, final String member) {
         checkType(key, "zset");
         Long rank = zrank(key, member);
         if (rank == null) {
@@ -1948,82 +1937,35 @@ public final class RedisMock extends AbstractRedisMock {
     }
 
     @Override
-    public synchronized Double zscore(final String key, final String member) throws WrongTypeException {
+    public synchronized Double zscore(final String key, final String member) {
         checkType(key, "zset");
         return zsetCache.getScore(key, member);
     }
 
     @Override
-    public synchronized Long zunionstore(final String destination, final int numkeys, final String... options) throws WrongTypeException, SyntaxErrorException {
+    public synchronized Long zunionstore(final String destination, final int numkeys, final String... options) {
         if (exists(destination)) {
             del(destination);
         }
-        List<String> keys = new ArrayList<String>(numkeys);
-        Map<String, Double> weights = new HashMap<String, Double>();
-        String aggregate = "sum";
-        if (options.length < numkeys) {
-            throw new SyntaxErrorException();
-        }
-        int i;
-        for (i = 0; i < numkeys; ++i) {
-            checkType(options[i], "zset");
-            keys.add(options[i]);
-        }
-        i = numkeys;
-        while (i < options.length) {
-            if (options[i] == null) {
-                continue;
-            }
-            if ("weights".equals(options[i].toLowerCase())) {
-                if (i + 1 >= options.length) {
-                    throw new SyntaxErrorException();
-                }
-                int ki = 0;
-                ++i;
-                while (i < options.length && !("aggregate".equals(options[i]))) {
-                    weights.put(keys.get(ki), Double.valueOf(options[i]));
-                    ++ki;
-                    ++i;
-                }
-            } else if ("aggregate".equals(options[i].toLowerCase())) {
-                if (i + 1 >= options.length) {
-                    throw new SyntaxErrorException();
-                }
-                aggregate = options[i + 1];
-                i += 2;
-            } else {
-                throw new SyntaxErrorException();
-            }
-        }
-        String key = keys.get(0);
-        Set<ZsetPair> range = zrange(key, 0, -1, "withscores");
-        Map<String, Double> rangeMap = new HashMap<String, Double>();
+        ZsetAggregation zsetAggregation = ZsetAggregation.parse(numkeys, options);
+        zsetAggregation.keys.forEach(key -> checkType(key, "zset"));
+        String key = zsetAggregation.keys.get(0);
+        List<ZsetPair> range = zrange(key, 0, -1, "withscores");
+        Map<String, Double> rangeMap = new HashMap<>();
         for (ZsetPair pair : range) {
-            if (weights.containsKey(key)) {
-                pair.score *= weights.get(key);
+            if (zsetAggregation.weights.containsKey(key)) {
+                pair.score *= zsetAggregation.weights.get(key);
             }
             rangeMap.put(pair.member, pair.score);
         }
-        for (String k : keys.subList(1, numkeys)) {
+        for (String k : zsetAggregation.keys.subList(1, numkeys)) {
             for (String m : zsetCache.get(k)) {
                 ZsetPair pair = new ZsetPair(m, zsetCache.getScore(k, m));
                 Double score = rangeMap.get(m);
-                if (weights.containsKey(k)) {
-                    pair.score *= weights.get(k);
+                if (zsetAggregation.weights.containsKey(k)) {
+                    pair.score *= zsetAggregation.weights.get(k);
                 }
-                if ("min".equals(aggregate)) {
-                    if (score != null) {
-                        pair.score = Math.min(pair.score, score);
-                    }
-                } else if ("max".equals(aggregate)) {
-                    if (score != null) {
-                        pair.score = Math.max(pair.score, score);
-                    }
-                } else { // == sum
-                    if (score != null) {
-                        pair.score += score;
-                    }
-                }
+                pair.score = zsetAggregation.aggregation.aggregate(pair.score, score);
                 rangeMap.put(pair.member, pair.score);
             }
         }
@@ -2036,30 +1978,19 @@ public final class RedisMock extends AbstractRedisMock {
     }
 
     @Override
-    public synchronized ScanResult<Set<ZsetPair>> zscan(String key, long cursor, String... options) throws WrongTypeException {
+    public synchronized ScanResult<List<ZsetPair>> zscan(String key, long cursor, String... options) {
         checkType(key, "zset");
-        Long count = null;
-        Pattern match = null;
-        for (int idx = 0; idx < options.length; ++idx) {
-            if (options[idx].equals("count")) {
-                count = Long.valueOf(options[idx + 1]);
-            } else if (options[idx].equals("match")) {
-                match = Pattern.compile(GlobToRegEx.convertGlobToRegEx(options[idx + 1]));
-            }
-        }
-        if (count == null) {
-            count = 10L;
-        }
-        Set<ZsetPair> scanned = new TreeSet<ZsetPair>(ZsetPair.comparator());
-        Set<ZsetPair> members = zrange(key, 0, -1, "withscores");
+        MatchAndCount matchAndCount = MatchAndCount.parse(options);
+        Set<ZsetPair> scanned = new TreeSet<>(ZsetPair.comparator());
+        List<ZsetPair> members = zrange(key, 0, -1, "withscores");
         Long idx = 0L;
         for (ZsetPair pair : members) {
             idx += 1;
             if (idx > cursor) {
-                if (match == null || match.matcher(pair.member).matches()) {
+                if (matchAndCount.matches(pair.member)) {
                     scanned.add(pair);
                 }
-                if ((long) scanned.size() >= count) {
+                if ((long) scanned.size() >= matchAndCount.count) {
                     break;
                 }
             }
@@ -2067,14 +1998,18 @@ public final class RedisMock extends AbstractRedisMock {
         if (idx >= zcard(key)) {
             idx = 0L;
         }
-        return new ScanResult<Set<ZsetPair>>(idx, scanned);
+        return new ScanResult<>(idx, scanned.stream().collect(Collectors.toList()));
     }
 
     //endregion
 
     private static class MatchAndCount {
         private Pattern match;
-        private Long count;
+        private Long count = 10L; //默认值:10
+
+        public boolean matches(String text) {
+            return match == null || match.matcher(text).matches();
+        }
 
         static MatchAndCount parse(String... options) {
             MatchAndCount result = new MatchAndCount();
@@ -2089,4 +2024,68 @@ public final class RedisMock extends AbstractRedisMock {
         }
     }
 
+    private static class ZsetAggregation {
+        enum Aggregation {
+            SUM, MIN, MAX;
+
+            /**
+             * score1 must not be null
+             */
+            Double aggregate(Double score1, Double score2) {
+                switch (this) {
+                    case MIN:
+                        return score2 == null ? score1 : Math.min(score1, score2);
+                    case MAX:
+                        return score2 == null ? score1 : Math.max(score1, score2);
+                    case SUM:
+                        return score2 == null ? score1 : (score1 + score2);
+                    default:
+                        throw new IllegalArgumentException();
+                }
+            }
+
+            static Aggregation from(String aggr) {
+                return Enum.valueOf(Aggregation.class, aggr.toUpperCase());
+            }
+        }
+
+        private List<String> keys = new ArrayList<>();
+        private Map<String, Double> weights = new HashMap<>();
+        private Aggregation aggregation = Aggregation.SUM;//默认值
+
+        static ZsetAggregation parse(int numkeys, String... options) {
+            ZsetAggregation zsetAggregation = new ZsetAggregation();
+            int i;
+            for (i = 0; i < numkeys; ++i) {
+                zsetAggregation.keys.add(options[i]);
+            }
+            i = numkeys;
+            while (i < options.length) {
+                if (options[i] == null) {
+                    continue;
+                }
+                if ("weights".equals(options[i].toLowerCase())) {
+                    if (i + 1 >= options.length) {
+                        throw new SyntaxErrorException();
+                    }
+                    int ki = 0;
+                    ++i;
+                    while (i < options.length && !("aggregate".equals(options[i]))) {
+                        zsetAggregation.weights.put(zsetAggregation.keys.get(ki), Double.valueOf(options[i]));
+                        ++ki;
+                        ++i;
+                    }
+                } else if ("aggregate".equals(options[i].toLowerCase())) {
+                    if (i + 1 >= options.length) {
+                        throw new SyntaxErrorException();
+                    }
+                    zsetAggregation.aggregation = Aggregation.from(options[i + 1]);
+                    i += 2;
+                } else {
+                    throw new SyntaxErrorException();
+                }
+            }
+            return zsetAggregation;
+        }
+    }
 }
