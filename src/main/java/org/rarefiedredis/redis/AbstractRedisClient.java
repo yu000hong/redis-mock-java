@@ -137,7 +137,7 @@ public abstract class AbstractRedisClient implements IRedisClient {
     }
 
     @Override
-    public Long bitop(String operation, String destkey, String... keys) {
+    public Long bitop(String operation, String destKey, String... keys) {
         throw new NotImplementedException();
     }
 
@@ -197,12 +197,12 @@ public abstract class AbstractRedisClient implements IRedisClient {
     }
 
     @Override
-    public String mset(String... keyvalues) {
+    public String mset(String... keyAndValues) {
         throw new NotImplementedException();
     }
 
     @Override
-    public Boolean msetnx(String... keyvalues) {
+    public Boolean msetnx(String... keyAndValues) {
         throw new NotImplementedException();
     }
 
@@ -238,6 +238,11 @@ public abstract class AbstractRedisClient implements IRedisClient {
 
     @Override
     public Long strlen(String key) {
+        throw new NotImplementedException();
+    }
+
+    @Override
+    public List<Long> bitfield(String key, String... options) {
         throw new NotImplementedException();
     }
 

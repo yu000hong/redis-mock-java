@@ -252,21 +252,19 @@ public final class RedisMock extends AbstractRedisMock {
     //region IRedisString implementations
 
     @Override
-    public synchronized Long append(final String key, final String value) throws WrongTypeException {
+    public synchronized Long append(final String key, final String value) {
         checkType(key, "string");
         if (!exists(key)) {
-            try {
-                set(key, value);
-            } catch (Exception e) {
-            }
+            set(key, value);
         } else {
             stringCache.set(key, stringCache.get(key) + value);
         }
+        keyModified(key);
         return strlen(key);
     }
 
     @Override
-    public synchronized Long bitcount(final String key, long... options) throws WrongTypeException {
+    public synchronized Long bitcount(final String key, long... options) {
         if (!exists(key)) {
             return 0L;
         }
@@ -300,63 +298,69 @@ public final class RedisMock extends AbstractRedisMock {
     }
 
     @Override
-    public synchronized Long bitop(String operation, final String destkey, String... keys) throws WrongTypeException {
-        String[] strs = new String[keys.length];
+    public synchronized Long bitop(String operation, final String destKey, String... keys) {
+        int len = keys.length;
+        if (len == 0) {
+            return 0L;
+        }
+        String[] strings = new String[len];
         int longest = 0;
-        for (int idx = 0; idx < keys.length; ++idx) {
-            String key = keys[idx];
+        for (int i = 0; i < len; ++i) {
+            String key = keys[i];
             if (!exists(key)) {
-                strs[idx] = "";
+                strings[i] = "";
                 continue;
             }
             checkType(key, "string");
-            strs[idx] = stringCache.get(key);
-            if (longest < strs[idx].length()) {
-                longest = strs[idx].length();
+            strings[i] = stringCache.get(key);
+            if (longest < strings[i].length()) {
+                longest = strings[i].length();
             }
         }
-        for (int idx = 0; idx < strs.length; ++idx) {
-            while (strs[idx].length() < longest) {
-                strs[idx] += "\0";
+        for (int i = 0; i < len; ++i) {
+            while (strings[i].length() < longest) {
+                strings[i] += "\0";
             }
         }
         operation = operation.toLowerCase();
-        String s = strs[0];
-        for (int idx = 0; idx < strs.length; ++idx) {
-            String str = strs[idx];
-            StringBuffer cur = new StringBuffer();
-            for (int jdx = 0; jdx < longest; ++jdx) {
+        String s0 = strings[0];
+        for (int i = 0; i < len; ++i) {
+            String si = strings[i];
+            StringBuilder cur = new StringBuilder();
+            for (int j = 0; j < longest; ++j) {
                 int n = 0;
-                if (operation.equals("and")) {
-                    n = Character.codePointAt(s, jdx) & Character.codePointAt(str, jdx);
-                } else if (operation.equals("or")) {
-                    n = Character.codePointAt(s, jdx) | Character.codePointAt(str, jdx);
-                } else if (operation.equals("xor")) {
-                    // a XOR a = 0, so avoid XOR'ing the first string with itself.
-                    if (idx > 0) {
-                        n = Character.codePointAt(s, jdx) ^ Character.codePointAt(str, jdx);
-                    } else {
-                        n = Character.codePointAt(s, jdx);
-                    }
-                } else if (operation.equals("not")) {
-                    n = ~Character.codePointAt(s, jdx);
+                switch (operation) {
+                    case "and":
+                        n = Character.codePointAt(s0, j) & Character.codePointAt(si, j);
+                        break;
+                    case "or":
+                        n = Character.codePointAt(s0, j) | Character.codePointAt(si, j);
+                        break;
+                    case "xor":
+                        // a XOR a = 0, so avoid XOR'ing the first string with itself.
+                        if (i > 0) {
+                            n = Character.codePointAt(s0, j) ^ Character.codePointAt(si, j);
+                        } else {
+                            n = Character.codePointAt(s0, j);
+                        }
+                        break;
+                    case "not":
+                        n = ~Character.codePointAt(s0, j);
+                        break;
                 }
                 cur.append((char) n);
             }
-            s = cur.toString();
+            s0 = cur.toString();
             if (operation.equals("not")) {
                 break;
             }
         }
-        try {
-            set(destkey, s);
-        } catch (SyntaxErrorException e) {
-        }
-        return (long) s.length();
+        set(destKey, s0);
+        return (long) s0.length();
     }
 
     @Override
-    public synchronized Long bitpos(String key, long bit, long... options) throws WrongTypeException, BitArgException {
+    public synchronized Long bitpos(String key, long bit, long... options) {
         if (bit != 0L && bit != 1L) {
             throw new BitArgException();
         }
@@ -371,7 +375,7 @@ public final class RedisMock extends AbstractRedisMock {
         long len = (long) value.length();
         long start = options.length > 0 ? options[0] : 0;
         long end = options.length > 1 ? options[1] : len - 1;
-        boolean noend = !(options.length > 1);
+        boolean noEnd = !(options.length > 1);
         if (start < 0) {
             start = len + start;
         }
@@ -381,16 +385,16 @@ public final class RedisMock extends AbstractRedisMock {
         if (start > end) {
             return -1L;
         }
-        long idx;
-        for (idx = start; idx <= end; ++idx) {
-            int ch = Character.codePointAt(value, (int) idx);
+        long i;
+        for (i = start; i <= end; ++i) {
+            int ch = Character.codePointAt(value, (int) i);
             int cnt = 0;
-            while (cnt < 8) {
-                if (bit == 0L && (ch & 0x80) != 0x80) {
-                    return (long) (idx) * 8L + (long) cnt;
+            while (cnt < 16) {
+                if (bit == 0L && (ch & 0x8000) != 0x8000) {
+                    return i * 16L + (long) cnt;
                 }
-                if (bit == 1L && (ch & 0x80) == 0x80) {
-                    return (long) (idx) * 8L + (long) cnt;
+                if (bit == 1L && (ch & 0x8000) == 0x8000) {
+                    return i * 16L + (long) cnt;
                 }
                 ch <<= 1;
                 cnt += 1;
@@ -398,38 +402,33 @@ public final class RedisMock extends AbstractRedisMock {
         }
         if (bit == 1) {
             return -1L;
+        } else if (noEnd) {
+            return i * 16L;
+        } else {
+            return -1L;
         }
-        if (bit == 0 && noend) {
-            return (long) (idx) * 8L;
-        }
-        return -1L;
     }
 
     @Override
-    public synchronized Long decr(String key) throws WrongTypeException, NotIntegerException {
+    public synchronized Long decr(String key) {
         return decrby(key, 1);
     }
 
     @Override
-    public synchronized Long decrby(String key, long decrement) throws WrongTypeException, NotIntegerException {
-        Long newValue = 0L;
-        try {
-            if (!exists(key)) {
-                set(key, "0");
-            }
-            checkType(key, "string");
-            long asInt = Long.parseLong(get(key));
-            newValue = asInt - decrement;
-            set(key, String.valueOf(newValue));
-        } catch (NumberFormatException nfe) {
-            throw new NotIntegerException();
-        } catch (SyntaxErrorException see) {
+    public synchronized Long decrby(String key, long decrement) {
+        checkType(key, "string");
+        long oldValue = 0L;
+        if (exists(key)) {
+            //noinspection ConstantConditions
+            oldValue = Long.parseLong(get(key));
         }
+        long newValue = oldValue - decrement;
+        set(key, String.valueOf(newValue));
         return newValue;
     }
 
     @Override
-    public synchronized String get(final String key) throws WrongTypeException {
+    public synchronized String get(final String key) {
         if (!exists(key)) {
             return null;
         }
@@ -438,28 +437,27 @@ public final class RedisMock extends AbstractRedisMock {
     }
 
     @Override
-    public synchronized Boolean getbit(final String key, final long offset) throws WrongTypeException {
+    public synchronized Boolean getbit(final String key, final long offset) {
         if (!exists(key)) {
             return false;
         }
         checkType(key, "string");
         String value = stringCache.get(key);
-        if (offset >= value.length() * 8L) {
+        if (offset >= value.length() * 16L) {
             return false;
         }
-        int n = value.codePointAt((int) Math.floor(offset / 8L));
-        long pos = offset % 8;
+        int n = value.codePointAt((int) Math.floor(offset / 16L));
+        long pos = offset % 16;
         return ((n >> pos) & 0x01) == 1;
     }
 
     @Override
-    public synchronized String getrange(final String key, long start, long end) throws WrongTypeException {
+    public synchronized String getrange(final String key, long start, long end) {
         if (!exists(key)) {
             return "";
         }
         checkType(key, "string");
         String value = stringCache.get(key);
-        long len = 0L;
         if (end < 0) {
             end = value.length() + end;
         }
@@ -474,95 +472,78 @@ public final class RedisMock extends AbstractRedisMock {
     }
 
     @Override
-    public synchronized String getset(final String key, final String value) throws WrongTypeException {
-        String prev = null;
-        try {
-            prev = get(key);
-            set(key, value);
-        } catch (WrongTypeException wte) {
-            throw wte;
-        } catch (SyntaxErrorException see) {
-        }
-        return prev;
+    public synchronized String getset(final String key, final String value) {
+        String oldValue = get(key);
+        set(key, value);
+        return oldValue;
     }
 
     @Override
-    public synchronized Long incr(final String key) throws WrongTypeException, NotIntegerException {
+    public synchronized Long incr(final String key) {
         return decrby(key, -1);
     }
 
     @Override
-    public synchronized Long incrby(final String key, final long increment) throws WrongTypeException, NotIntegerException {
+    public synchronized Long incrby(final String key, final long increment) {
         return decrby(key, -increment);
     }
 
     @Override
-    public synchronized String incrbyfloat(final String key, final double increment) throws WrongTypeException, NotFloatException {
-        Double newValue = 0.0d;
-        try {
-            if (!exists(key)) {
-                set(key, "0.0");
-            }
-            checkType(key, "string");
-            double asDouble = Double.parseDouble(get(key));
-            newValue = asDouble + increment;
-            set(key, String.valueOf(newValue));
-        } catch (NumberFormatException nfe) {
-            throw new NotFloatException();
-        } catch (SyntaxErrorException see) {
+    public synchronized String incrbyfloat(final String key, final double increment) {
+        checkType(key, "string");
+        Double oldValue = 0.0d;
+        if (exists(key)) {
+            //noinspection ConstantConditions
+            oldValue = Double.parseDouble(get(key));
         }
+        double newValue = oldValue + increment;
+        set(key, String.valueOf(newValue));
         return String.valueOf(newValue);
     }
 
     @Override
     public synchronized String[] mget(final String... keys) {
-        String[] gets = new String[keys.length];
-        for (int idx = 0; idx < keys.length; ++idx) {
-            try {
-                gets[idx] = get(keys[idx]);
-            } catch (WrongTypeException e) {
-                gets[idx] = null;
-            }
+        int len = keys.length;
+        String[] gets = new String[len];
+        for (int i = 0; i < len; ++i) {
+            gets[i] = get(keys[i]);
         }
         return gets;
     }
 
     @Override
-    public synchronized String mset(final String... keyvalues) throws ArgException {
-        if (keyvalues.length == 0 || keyvalues.length % 2 != 0) {
+    public synchronized String mset(final String... keyAndValues) {
+        if (keyAndValues.length == 0 || keyAndValues.length % 2 != 0) {
             throw new ArgException("mset");
         }
-        for (int idx = 0; idx < keyvalues.length; ++idx) {
+        for (int idx = 0; idx < keyAndValues.length; ++idx) {
             if (idx % 2 != 0) {
                 continue;
             }
-            try {
-                set(keyvalues[idx], keyvalues[idx + 1]);
-            } catch (SyntaxErrorException e) {
-            }
+            set(keyAndValues[idx], keyAndValues[idx + 1]);
         }
         return "OK";
     }
 
     @Override
-    public synchronized Boolean msetnx(final String... keyvalues) throws ArgException {
-        if (keyvalues.length == 0 || keyvalues.length % 2 != 0) {
+    public synchronized Boolean msetnx(final String... keyAndValues) {
+        if (keyAndValues.length == 0 || keyAndValues.length % 2 != 0) {
             throw new ArgException("msetnx");
         }
-        for (int idx = 0; idx < keyvalues.length; ++idx) {
+        for (int idx = 0; idx < keyAndValues.length; ++idx) {
             if (idx % 2 != 0) {
                 continue;
             }
-            if (exists(keyvalues[idx])) {
+            if (exists(keyAndValues[idx])) {
                 return false;
             }
         }
-        for (int idx = 0; idx < keyvalues.length; ++idx) {
+        for (int idx = 0; idx < keyAndValues.length; ++idx) {
             if (idx % 2 != 0) {
                 continue;
             }
             try {
-                set(keyvalues[idx], keyvalues[idx + 1]);
+                set(keyAndValues[idx], keyAndValues[idx + 1]);
             } catch (SyntaxErrorException e) {
             }
         }
@@ -579,7 +560,7 @@ public final class RedisMock extends AbstractRedisMock {
     }
 
     @Override
-    public synchronized String set(final String key, final String value, String... options) throws SyntaxErrorException {
+    public synchronized String set(final String key, final String value, String... options) {
         boolean nx = false, xx = false;
         int ex = -1;
         long px = -1;
@@ -637,15 +618,15 @@ public final class RedisMock extends AbstractRedisMock {
         if (!exists(key)) {
             set(key, "");
         }
-        int byteIdx = (int) Math.floor(offset / 8L);
-        int bitIdx = (int) (offset % 8L);
+        int byteIdx = (int) Math.floor(offset / 16L);
+        int bitIdx = (int) (offset % 16L);
         String val = get(key);
         while (val.length() < byteIdx + 1) {
             val += "\0";
         }
         int code = val.codePointAt(byteIdx);
         int idx = 0;
-        int mask = 0x80;
+        int mask = 0x8000;
         while (idx < bitIdx) {
             mask >>= 1;
             idx += 1;
@@ -680,13 +661,10 @@ public final class RedisMock extends AbstractRedisMock {
     }
 
     @Override
-    public synchronized Long setrange(final String key, final long offset, final String value) throws WrongTypeException {
+    public synchronized Long setrange(final String key, final long offset, final String value) {
         checkType(key, "string");
         if (!exists(key)) {
-            try {
-                set(key, "");
-            } catch (SyntaxErrorException e) {
-            }
+            set(key, "");
         }
         String val = get(key);
         int idx;
@@ -706,12 +684,49 @@ public final class RedisMock extends AbstractRedisMock {
     }
 
     @Override
-    public synchronized Long strlen(final String key) throws WrongTypeException {
+    public synchronized Long strlen(final String key) {
         if (!exists(key)) {
             return 0L;
         }
         checkType(key, "string");
         return (long) stringCache.get(key).length();
+    }
+
+    @Override
+    public List<Long> bitfield(String key, String... options) {
+        checkType(key, "string");
+        List<BitCommand> commands = BitCommand.parse(options);
+        long maxLen = 0;
+        for (BitCommand command : commands) {
+            if (command.getActualOffset() + command.type.size > maxLen) {
+                maxLen = command.getActualOffset() + command.type.size;
+            }
+        }
+        String value;
+        if (exists(key)) {
+            value = stringCache.get(key);
+        } else {
+            value = "";
+        }
+        long len = (maxLen - 1) / 16 + 1;
+        while (value.length() < len) {
+            value += "\0";
+        }
+        stringCache.set(key, value);
+        byte[] bytes = getBytes(value);
+        List<Long> result = new ArrayList<>(commands.size());
+        boolean modified = false;
+        for (BitCommand command : commands) {
+            result.add(command.exec(bytes));
+            if (!"get".equals(command.command)) {
+                modified = true;
+            }
+        }
+        if (modified) {
+            stringCache.set(key, toString(bytes));
+            keyModified(key);
+        }
+        return result;
     }
 
     //endregion
@@ -2002,6 +2017,198 @@ public final class RedisMock extends AbstractRedisMock {
     }
 
     //endregion
+
+    private static byte[] getBytes(String text) {
+        int len = text.length();
+        byte[] bytes = new byte[len * 2];
+        for (int i = 0; i < len; i++) {
+            int code = text.codePointAt(i);
+            bytes[2 * i + 1] = (byte) code;
+            bytes[2 * i] = (byte) (code >> 8);
+        }
+        return bytes;
+    }
+
+    private static String toString(byte[] bytes) {
+        assert bytes.length % 2 == 0;
+        int len = bytes.length / 2;
+        char[] chars = new char[len];
+        for (int i = 0; i < len; i++) {
+            chars[i] = (char) ((bytes[2 * i] & 0xFF) << 8 | (bytes[2 * i + 1] & 0xFF));
+        }
+        return new String(chars);
+    }
+
+    private static class BitCommand {
+        static class Type {
+            private boolean unsigned;
+            private long size;
+
+            static Type parse(String text) {
+                Type type = new Type();
+                char signChar = text.charAt(0);
+                switch (signChar) {
+                    case 'i':
+                        type.unsigned = false;
+                        break;
+                    case 'u':
+                        type.unsigned = true;
+                        break;
+                    default:
+                        throw new ArgException("bitfield");
+                }
+                type.size = Long.valueOf(text.substring(1));
+                if (type.unsigned && type.size > 64) {
+                    throw new ArgException("bitfield");
+                }
+                if (!type.unsigned && type.size > 63) {
+                    throw new ArgException("bitfield");
+                }
+                return type;
+            }
+        }
+
+        static class Offset {
+            private boolean typed;
+            private long offset;
+
+            static Offset parse(String text) {
+                Offset offset = new Offset();
+                if (text.charAt(0) == '#') {
+                    offset.typed = true;
+                    offset.offset = Long.valueOf(text.substring(1));
+                } else {
+                    offset.typed = false;
+                    offset.offset = Long.valueOf(text);
+                }
+                return offset;
+            }
+        }
+
+        private Type type;
+        private Offset offset;
+        private String overflow;
+        private String command;
+        private Long value;
+
+        long getActualOffset() {
+            if (offset.typed) {
+                return offset.offset * type.size;
+            } else {
+                return offset.offset;
+            }
+        }
+
+        long exec(byte[] bytes) {
+            int BYTE_LEN = 8;
+            int LONG_LEN = 64;
+            int pos = (int) (getActualOffset() / BYTE_LEN);
+            int len = (int) ((getActualOffset() + type.size - 1) / BYTE_LEN + 1) - pos;
+            byte[] ebytes = new byte[len];
+            System.arraycopy(bytes, pos, ebytes, 0, len);
+            int leftGap = (int) (getActualOffset() % BYTE_LEN);
+            int rightGap = (BYTE_LEN - (int) (getActualOffset() + type.size) % BYTE_LEN) % BYTE_LEN;
+            long oldValue = 0;
+            for (int i = len - 1; i >= 0; i--) {
+                int shift = rightGap - (len - 1 - i) * BYTE_LEN;
+                if (shift > 0) {
+                    oldValue |= (((long) (ebytes[i] & 0xFF)) >> shift);
+                } else if (shift < 0) {
+                    oldValue |= (((long) (ebytes[i] & 0xFF)) << -shift);
+                } else {
+                    oldValue |= ((long) (ebytes[i] & 0xFF));
+                }
+            }
+            oldValue = oldValue << (LONG_LEN - type.size);
+            if (type.unsigned) {
+                oldValue = oldValue >>> (LONG_LEN - type.size);
+            } else {
+                oldValue = oldValue >> (LONG_LEN - type.size);
+            }
+            if (command.equals("get")) {
+                return oldValue;
+            }
+            long value = oldValue;
+            if (command.equals("set")) {
+                value = this.value;
+            } else if (command.equals("incrby")) {
+                value += this.value;
+            }
+            //clear effective bits
+            if (leftGap > 0) {
+                //clear left-side bits = right shift + left shift
+                ebytes[0] = (byte) ((ebytes[0] & 0xFF) >> (BYTE_LEN - leftGap) << (BYTE_LEN - leftGap));
+            } else {
+                ebytes[0] = 0;
+            }
+            if (rightGap > 0) {
+                //clear right-side bits = left shift + unsigned right shift
+                ebytes[len - 1] = (byte) (((ebytes[len - 1] & 0xFF) << (BYTE_LEN - rightGap)) & 0xFF >>> (BYTE_LEN - rightGap));
+            } else {
+                ebytes[len - 1] = 0;
+            }
+            for (int i = 1; i < len - 1; i++) {
+                ebytes[i] = 0;
+            }
+            value = value << rightGap;
+            for (int i = len - 1; i >= 0; i--) {
+                if (i == 0 && len > 8) {
+                    int firstTwoByteInteger = (int) (oldValue >>> (LONG_LEN - 16));
+                    firstTwoByteInteger <<= rightGap;
+                    firstTwoByteInteger = (firstTwoByteInteger << leftGap & 0xFFFF >> leftGap);
+                    ebytes[0] |= (byte) (firstTwoByteInteger >> 8);
+                } else {
+                    ebytes[i] |= (byte) (value >> (len - 1 - i) * 8);
+                }
+            }
+            System.arraycopy(ebytes, 0, bytes, pos, len);
+            return oldValue;
+        }
+
+        static List<BitCommand> parse(String... options) {
+            List<BitCommand> commands = new ArrayList<>();
+            String currentOverflow = "WRAP";//default overflow
+            int len = options.length;
+            BitCommand command;
+            for (int i = 0; i < len; ++i) {
+                String cmd = options[i].toLowerCase();
+                switch (cmd) {
+                    case "get":
+                        command = new BitCommand();
+                        command.command = cmd;
+                        command.type = Type.parse(options[++i]);
+                        command.offset = Offset.parse(options[++i]);
+                        command.overflow = currentOverflow;
+                        commands.add(command);
+                        break;
+                    case "set":
+                        command = new BitCommand();
+                        command.command = cmd;
+                        command.type = Type.parse(options[++i]);
+                        command.offset = Offset.parse(options[++i]);
+                        command.value = Long.valueOf(options[++i]);
+                        command.overflow = currentOverflow;
+                        commands.add(command);
+                        break;
+                    case "incrby":
+                        command = new BitCommand();
+                        command.command = cmd;
+                        command.type = Type.parse(options[++i]);
+                        command.offset = Offset.parse(options[++i]);
+                        command.value = Long.valueOf(options[++i]);
+                        command.overflow = currentOverflow;
+                        commands.add(command);
+                        break;
+                    case "overflow":
+                        currentOverflow = options[++i].toUpperCase();
+                        break;
+                    default:
+                        throw new ArgException("bitfield");
+                }
+            }
+            return commands;
+        }
+    }
 
     private static class MatchAndCount {
         private Pattern match;

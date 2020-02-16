@@ -43,7 +43,7 @@ public final class RedisMockMulti extends AbstractRedisMock {
     }
 
     private synchronized Object command(String name, Object... args) {
-        List<Object> argList = new ArrayList<Object>();
+        List<Object> argList = new ArrayList<>();
         for (Object arg : args) {
             argList.add(arg);
         }
@@ -53,7 +53,7 @@ public final class RedisMockMulti extends AbstractRedisMock {
 
     @Override
     public synchronized List<Object> exec() {
-        List<Object> returns = new ArrayList<Object>(commands.size());
+        List<Object> returns = new ArrayList<>(commands.size());
         Method[] methods = redisMock.getClass().getDeclaredMethods();
         synchronized (redisMock) {
             for (MultiCommand command : commands) {
@@ -181,8 +181,8 @@ public final class RedisMockMulti extends AbstractRedisMock {
     }
 
     @Override
-    public Long bitop(String operation, final String destkey, String... keys) {
-        return (Long) command("bitop", operation, destkey, keys);
+    public Long bitop(String operation, final String destKey, String... keys) {
+        return (Long) command("bitop", operation, destKey, keys);
     }
 
     @Override
@@ -241,13 +241,13 @@ public final class RedisMockMulti extends AbstractRedisMock {
     }
 
     @Override
-    public String mset(final String... keyvalues) {
-        return (String) command("mset", new Object[]{keyvalues});
+    public String mset(final String... keyAndValues) {
+        return (String) command("mset", new Object[]{keyAndValues});
     }
 
     @Override
-    public Boolean msetnx(final String... keyvalues) {
-        return (Boolean) command("msetnx", new Object[]{keyvalues});
+    public Boolean msetnx(final String... keyAndValues) {
+        return (Boolean) command("msetnx", new Object[]{keyAndValues});
     }
 
     @Override

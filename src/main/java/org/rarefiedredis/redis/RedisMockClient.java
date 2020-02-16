@@ -92,8 +92,8 @@ public final class RedisMockClient extends AbstractRedisMock {
     }
 
     @Override
-    public Long bitop(String operation, final String destkey, String... keys) throws WrongTypeException {
-        return redisMock.bitop(operation, destkey, keys);
+    public Long bitop(String operation, final String destKey, String... keys) throws WrongTypeException {
+        return redisMock.bitop(operation, destKey, keys);
     }
 
     @Override
@@ -152,13 +152,13 @@ public final class RedisMockClient extends AbstractRedisMock {
     }
 
     @Override
-    public String mset(final String... keyvalues) throws ArgException {
-        return redisMock.mset(keyvalues);
+    public String mset(final String... keyAndValues) throws ArgException {
+        return redisMock.mset(keyAndValues);
     }
 
     @Override
-    public Boolean msetnx(final String... keyvalues) throws ArgException {
-        return redisMock.msetnx(keyvalues);
+    public Boolean msetnx(final String... keyAndValues) throws ArgException {
+        return redisMock.msetnx(keyAndValues);
     }
 
     @Override
